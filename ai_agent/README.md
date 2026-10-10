@@ -6,7 +6,7 @@
 
 | 폴더 | 내용 |
 |---|---|
-| `churn_agent/` | Agent 본체: Rule Engine → LLM(OpenAI) → 검증기 → 템플릿 폴백, REST API(FastAPI), 저장소(메모리·PostgreSQL), 설문 시뮬레이터·신규 유형 후보 에이전트·승인 흐름(`feedback/`), 테스트 490건 |
+| `churn_agent/` | Agent 본체: Rule Engine → LLM(OpenAI) → 검증기 → 템플릿 폴백, REST API(FastAPI), 저장소(메모리·PostgreSQL), 설문 시뮬레이터·신규 유형 후보 에이전트·승인 흐름(`feedback/`), 테스트 491건 |
 | `datagen/` | 더미 데이터 생성기(모집단 30,000건, 이벤트, 라벨, 검증, 시연 12건, PostgreSQL 적재) |
 | `churn_model/` | 이탈 예측 모델(XGBoost + SHAP 유형), 5-겹 교차 적합 예측, DB 반영 |
 

@@ -11,7 +11,9 @@ rules:
   unknown_required_fact: fail            # [제안] '사건이 있었다'고 말하는 조건(required)의 값이 없으면 후보 제외. pass면 통과
 llm:
   provider: mock                         # mock | openai (openai인데 키가 없으면 앱은 뜨고 템플릿으로만 동작, /health에 표시)
-  model: gpt-4o-mini                     # [팀 결정 필요] 계정에서 쓸 수 있는 모델로 교체
+  model: gpt-5.4-nano                    # 메인 Agent(솔루션 선택·문구). 측정 기준선(v3.4+HINT_GUARD: 1차 84%/사용가능 95.5%). [팀 결정 필요] nano는 공식 페이지에 deprecated 표시 → 운영 모델 확정 후 재측정
+  candidate_model: gpt-5.4-mini          # 설문 후보 생성 Agent(feedback). 측정에서 nano는 이 과제에 부적합, mini 사용. CLI --model로 덮어쓸 수 있음
+  sentence_pool_model: gpt-5.4-nano      # 설문 문장 변형 생성 스크립트(build_sentence_pool.py) 기본 모델
   api_key_env: OPENAI_API_KEY
   temperature: null                      # null이면 보내지 않음(일부 추론형 모델은 temperature를 거부)
   first_timeout_s: 10

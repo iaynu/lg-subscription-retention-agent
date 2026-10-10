@@ -34,14 +34,14 @@ def run(data, limit=None, out=None, sql_url=None, reset=False, as_of=None, verbo
     return rows, checks, info
 
 
-def run_candidates(inp, provider="mock", model="gpt-5.4-nano", out=None, sql_url=None, reset=False, min_support=8, verbose=True, two_stage=True, runs=3):
+def run_candidates(inp, provider="mock", model=None, out=None, sql_url=None, reset=False, min_support=8, verbose=True, two_stage=True, runs=3):
     """저장된 설문 3표(CSV 폴더)를 읽어 후보를 만들고 ai_proposal로 저장한다. 폴더에 synth_truth_topic.csv가 있으면 회수 검증을 덧붙인다(정답은 후보 생성에 쓰지 않음)."""
     import pandas as pd
     from pathlib import Path
     from . import candidates as C, recovery as R
     f = lambda n: pd.read_csv(Path(inp) / f"{n}.csv", dtype={"subscription_id": str, "answer_code": str})
     df = C.load_df(f("survey_send"), f("survey_response"), f("survey_answer"))
-    llm = C.MockCandidateLlm() if provider == "mock" else C.OpenAICandidateLlm(model)
+    llm = C.MockCandidateLlm() if provider == "mock" else C.OpenAICandidateLlm(model or C.default_model())
     res = C.generate_consensus(df, llm, runs=runs, min_support=min_support, two_stage=two_stage)   # runs>=2: 과반 실행에서 반복된 후보만
     rows = C.to_rows(res, res["pack_stats"]["n_responses"])
     truth = Path(inp) / "synth_truth_topic.csv"
@@ -88,7 +88,7 @@ def main(argv=None):
     r.add_argument("--data", required=True); r.add_argument("--limit", type=int); r.add_argument("--out"); r.add_argument("--sql", action="store_true", help="환경변수 DATABASE_URL로 DB에 적재")
     r.add_argument("--reset", action="store_true"); r.add_argument("--as-of")
     c = sp.add_parser("candidates"); c.add_argument("--in", dest="inp", required=True); c.add_argument("--provider", choices=["mock", "openai"], default="mock")
-    c.add_argument("--model", default="gpt-5.4-nano"); c.add_argument("--out"); c.add_argument("--sql", action="store_true"); c.add_argument("--reset", action="store_true")
+    c.add_argument("--model", default=None, help="생략하면 config.yaml의 llm.candidate_model"); c.add_argument("--out"); c.add_argument("--sql", action="store_true"); c.add_argument("--reset", action="store_true")
     c.add_argument("--min-support", type=int, default=8); c.add_argument("--runs", type=int, default=3, help="후보 생성 반복 횟수. 2 이상이면 과반 실행에서 반복된 후보만 남김(비용 ×횟수). 1이면 한 번만")
     c.add_argument("--single-stage", action="store_true", help="1단계(기존 유형과 정확히 일치하는 문장 제외) 없이 한 번에 후보 생성. 기본은 2단계")
     c.add_argument("--two-stage", action="store_true", help=argparse.SUPPRESS)

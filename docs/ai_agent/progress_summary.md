@@ -40,7 +40,7 @@
 - 합의는 실행마다 흔들리는 후보는 거르지만 "기존 유형 재서술"은 못 거름. 세트 간 반복되는 숨은 주제 외 후보("일정·안내 지연형", "이전·해지 절차 혼선형" 등)는 T06·T02·T03 재서술 가능성이 높아 관리자가 `closest_type_id`·`difference`를 보고 판단. [가정]
 - 승인 흐름(`feedback/approve.py`): 채택 시 새 유형 ID(T11~)와 솔루션 행을 비활성(`active_yn='N'`, `agent_selectable_yn='N'`)으로 추가, 기각은 상태만 변경(사유 필수), 활성화는 별도 단계. 새 유형은 모델이 모르므로 재학습·매핑 전에는 Agent가 쓰지 않음.
 - 가격(공식 모델 페이지 2026-10-10 확인, 100만 토큰당): gpt-5.4-mini 입력 $0.75 / 출력 $4.50, gpt-5.4-nano $0.20 / $1.25(nano는 deprecated 표시). 합의 1회 실행(mini) 약 $0.13~0.14(약 190원, 환율 1,400원 가정).
-- 테스트: 전체 490 passed(PostgreSQL 포함). 상세 설계·결과는 `docs/survey_simulator_design.md` §9~§12.
+- 테스트: 전체 491 passed(PostgreSQL 포함). 모델명은 config.yaml의 llm.model(nano)·candidate_model(mini)·sentence_pool_model(nano)에서 관리(2026-10-10). 상세 설계·결과는 `docs/survey_simulator_design.md` §9~§12.
 
 ## 5. 남은 일
 

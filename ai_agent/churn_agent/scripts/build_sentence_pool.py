@@ -77,7 +77,7 @@ def run(client, model: str, per_code: int, codes=None) -> dict:
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="gpt-5.4-nano"); ap.add_argument("--per-code", type=int, default=25)
+    ap.add_argument("--model", default=None, help="생략하면 config.yaml의 llm.sentence_pool_model"); ap.add_argument("--per-code", type=int, default=25)
     ap.add_argument("--out", default=str(P.HERE / "sentence_pool_variants.candidate.yaml")); ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     seeds = yaml.safe_load(P.POOL_FILE.read_text(encoding="utf-8"))["seeds"]
@@ -88,7 +88,8 @@ def main(argv=None):
     if not key: print("환경변수 OPENAI_API_KEY가 없습니다."); return 2
     from openai import OpenAI
     client = OpenAI(api_key=key, max_retries=2)
-    res = run(client, a.model, a.per_code)
+    from feedback.candidates import default_model
+    res = run(client, a.model or default_model("sentence_pool_model"), a.per_code)
     header = "# LLM 변형 문장 후보 — 팀 검토 전. 승인한 문장만 sentence_pool_variants.yaml 의 variants 아래로 옮긴다.\n"
     Path(a.out).write_text(header + yaml.safe_dump({"variants": res["variants"]}, allow_unicode=True, sort_keys=False), encoding="utf-8")
     print(yaml.safe_dump(res["report"], allow_unicode=True)); print(f"후보 저장: {a.out}")

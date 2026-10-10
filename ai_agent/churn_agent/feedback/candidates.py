@@ -124,9 +124,19 @@ def response_schema() -> dict:
     return {"type": "object", "additionalProperties": False, "required": ["proposals"], "properties": {"proposals": {"type": "array", "items": prop}}}
 
 
+def default_model(key: str = "candidate_model") -> str:
+    """모델명은 agent/config.py + config.yaml 의 llm.<key> 한 곳에서 읽는다(실패하면 mini)."""
+    try:
+        from agent.config import load_config as _lc
+        return _lc()["llm"].get(key) or "gpt-5.4-mini"
+    except Exception:
+        return "gpt-5.4-mini"
+
+
 class OpenAICandidateLlm:
     """OpenAI Structured Outputs. 키는 환경변수에서만 읽는다. SDK 자동 재시도는 끈다."""
-    def __init__(self, model: str = "gpt-5.4-nano", api_key_env: str = "OPENAI_API_KEY", client=None, temperature: float | None = None):
+    def __init__(self, model: str | None = None, api_key_env: str = "OPENAI_API_KEY", client=None, temperature: float | None = None):
+        model = model or default_model()
         self.model, self.temperature, self.last_usage = model, temperature, None
         if client is None:
             key = os.environ.get(api_key_env)

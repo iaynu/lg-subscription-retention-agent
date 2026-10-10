@@ -13,7 +13,7 @@ from .prompt import build_user_message, response_schema
 
 
 class OpenAIClient:
-    def __init__(self, model: str = "gpt-4o-mini", api_key_env: str = "OPENAI_API_KEY", temperature: float | None = None,
+    def __init__(self, model: str = "gpt-5.4-nano", api_key_env: str = "OPENAI_API_KEY", temperature: float | None = None,
                  client=None, base_url_env: str | None = "OPENAI_BASE_URL"):
         self.model, self.temperature = model, temperature
         if client is None:

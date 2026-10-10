@@ -17,7 +17,9 @@
 
 ## OpenAI
     export OPENAI_API_KEY=...                   # 키는 환경변수로만. 파일·로그에 쓰지 않음
-    # config.yaml: llm.provider: openai, llm.model: (계정에서 쓸 수 있는 모델)
+    # config.yaml: llm.provider: openai (기본은 mock). 모델명은 config.yaml의 llm 항목 한 곳에서 관리:
+    #   llm.model(메인 Agent, 현재 gpt-5.4-nano) · llm.candidate_model(후보 생성, gpt-5.4-mini) · llm.sentence_pool_model(문장 변형, gpt-5.4-nano)
+    #   nano는 공식 페이지에 deprecated 표시 → 운영 전 모델 확정·재측정 필요
 키가 없으면 앱은 기동하고 템플릿으로만 동작합니다(`/health`의 `llm_status`).
 
 ## 폴더
@@ -67,7 +69,7 @@ python -m feedback.cli run --data ../data_out --out out/survey
 # 2) 후보 생성: 모의(키 불필요) 또는 OpenAI (2단계 분류가 기본, 끄려면 --single-stage)
 #    기본은 3회 실행해 과반(2회 이상)에서 반복된 후보만 남김(--runs 3, 비용 ×3). 한 번만 돌리려면 --runs 1
 python -m feedback.cli candidates --in out/survey --provider mock --out out/cand
-python -m feedback.cli candidates --in out/survey --provider openai --model gpt-5.4-mini --out out/cand
+python -m feedback.cli candidates --in out/survey --provider openai --out out/cand      # 모델은 config.yaml의 llm.candidate_model (--model로 덮어쓰기)
 # 3) 사람이 검토: 목록 -> 미리보기 -> 채택/기각 (채택해도 솔루션은 비활성) -> 확인 후 활성화
 python -m feedback.cli proposal list
 python -m feedback.cli proposal approve 1 --reviewer yj --dry-run [--overrides review.json]

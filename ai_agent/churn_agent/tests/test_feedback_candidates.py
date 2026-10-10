@@ -363,3 +363,16 @@ def test_generate_consensus_runs_and_excludes_failed_runs():
     r = C.generate_consensus(df, llm, runs=3, existing_types=TYPES, two_stage=False)
     assert r["proposals"][0]["votes"] == 2 and r["llm_error"]                  # 실패한 실행은 표에서 빠지고 오류는 남음
     assert C.generate_consensus(df, Fake([{"proposals": [good(p)]}]), runs=1, existing_types=TYPES, two_stage=False)["source"] == "llm"
+
+
+def test_default_model_from_config_and_override():
+    from agent.config import load_config
+    from feedback import candidates as C
+    cfg = load_config()["llm"]
+    assert C.default_model() == cfg["candidate_model"] == "gpt-5.4-mini"
+    assert C.default_model("sentence_pool_model") == cfg["sentence_pool_model"]
+    assert cfg["model"] == "gpt-5.4-nano"
+    class Dummy:  # 키 없이 객체만 만들기 위한 가짜 클라이언트
+        pass
+    assert C.OpenAICandidateLlm(client=Dummy()).model == "gpt-5.4-mini"
+    assert C.OpenAICandidateLlm("x", client=Dummy()).model == "x"
