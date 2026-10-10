@@ -1,0 +1,1067 @@
+{
+ "_note": "시연용 대표 구독자 8명. agent_input = AgentInput(agent_design.md §3.2). 구독자·수치는 모두 가설 기반 합성 [가정]. 피처 이름·label 중 T01~T10 신규 신호(unapplied_discount_yn, zero_use_weeks_12w 등)는 feature_groups.yaml display_ko에 추가 필요. llm_script의 각 항목은 모의 LLM의 호출별 응답({output}=JSON 출력, {raw}=텍스트, {error}=예외). (2026-10-08) 구독 시작일·광고 수신 동의(customer.ad_consent_yn)·facts(사건 확인 값)·message_facts(고객 공개 값) 추가, D3 제품군을 6개 제품군 중 하나(의류관리기)로 수정. title·expect_rule·expect_flow는 구 테스트 카탈로그(catalog_test.json)와 스크립트 LLM 기준 시나리오이고, expect_real은 확정 카탈로그 + 규칙 기반 mock(API 데모 모드)에서 실제로 나오는 경로(tests/test_pipeline_demos.py가 확인).",
+ "demos": [
+  {
+   "id": "D1",
+   "title": "정석 ACTION: 두 유형, 정보제공 + 담당자조치, 1회 통과",
+   "shows": "유형 2개 커버, 구분 중복(T06-A 제외), 슬롯 2개 제한, LLM 1회 통과",
+   "expect_real": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T01-C",
+     "S-T06-C"
+    ],
+    "fallback": null,
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D1",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000101",
+     "product_category": "정수기",
+     "monthly_fee": 52000,
+     "contract_months": 60,
+     "end_date": "2027-06-15",
+     "days_to_end": 258,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2022-06-15"
+    },
+    "prediction": {
+     "churn_probability": 0.68,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.04
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T01",
+      "type_name": "구독료 부담형",
+      "contribution_share": 0.58,
+      "top_features": [
+       {
+        "feature": "voc_fee_cnt_90d",
+        "label": "최근 90일 요금 문의 횟수",
+        "value": 3,
+        "shap": 0.38
+       },
+       {
+        "feature": "unapplied_discount_yn",
+        "label": "미적용 할인 해당 여부",
+        "value": "Y",
+        "shap": 0.21
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T06",
+      "type_name": "방문 일정 불편형",
+      "contribution_share": 0.3,
+      "top_features": [
+       {
+        "feature": "visit_delay_cnt_365d",
+        "label": "최근 1년 방문 지연 횟수",
+        "value": 3,
+        "shap": 0.29
+       },
+       {
+        "feature": "schedule_change_req_cnt_365d",
+        "label": "최근 1년 고객 일정 변경 요청 횟수",
+        "value": 4,
+        "shap": 0.17
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 4,
+      "by_category": {
+       "요금문의": 3,
+       "일정문의": 1
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 6,
+      "delays": 3,
+      "cancels": 1
+     }
+    },
+    "recent_actions": [],
+    "customer": {
+     "ad_consent_yn": "Y"
+    },
+    "facts": {
+     "unapplied_discount_yn": "Y",
+     "voc_fee_or_cancel_cnt_30d": 2,
+     "has_upcoming_visit": "Y",
+     "missed_or_late_visit_cnt_30d": 1
+    },
+    "message_facts": {
+     "next_visit_date": "2026-10-08"
+    }
+   },
+   "expect_rule": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T01-A",
+     "S-T06-B"
+    ],
+    "excluded": {
+     "S-T01-B": "MAX_ACTIONS",
+     "S-T06-A": "DUP_CATEGORY"
+    },
+    "uncovered_types": []
+   },
+   "llm_script": [
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-T01-A",
+        "type_id": "T01",
+        "selection_reason": "최근 90일 요금 문의가 3회이고 적용 가능한 할인이 있어, 청구 내역과 할인 적용 여부를 먼저 안내하는 것이 적절합니다.",
+        "evidence": [
+         {
+          "feature": "voc_fee_cnt_90d",
+          "value": 3
+         },
+         {
+          "feature": "unapplied_discount_yn",
+          "value": "Y"
+         }
+        ],
+        "message_text": "고객님, 청구 금액 구성과 적용 가능한 할인 내역을 총 비용과 함께 안내드립니다. 자세한 내용은 앱 또는 상담으로 확인하실 수 있습니다."
+       },
+       {
+        "priority": 2,
+        "solution_id": "S-T06-B",
+        "type_id": "T06",
+        "selection_reason": "최근 1년 방문 지연이 3회이고 일정 변경 요청이 4회라 방문 시간대를 다시 조율할 필요가 있습니다.",
+        "evidence": [
+         {
+          "feature": "visit_delay_cnt_365d",
+          "value": 3
+         },
+         {
+          "feature": "schedule_change_req_cnt_365d",
+          "value": 4
+         }
+        ],
+        "message_text": "고객님, 방문 일정이 여러 번 바뀌어 불편을 드렸습니다. 가능하신 방문 시간대를 담당자가 다시 조율해 연락드리겠습니다."
+       }
+      ],
+      "summary": "요금 문의와 방문 지연이 함께 나타난 고객입니다. 요금 내역 안내를 먼저, 방문 시간대 조율을 다음으로 제안합니다."
+     }
+    }
+   ],
+   "expect_flow": {
+    "llm_called": true,
+    "outcome": "pass",
+    "attempts": 1
+   }
+  },
+  {
+   "id": "D2",
+   "title": "쿨다운 + 혜택제안, 첫 출력 위반 → 재시도 통과",
+   "shows": "같은 솔루션 쿨다운(S-T01-A 10일 전), 혜택이 비용 상한 안에서 채택, 검증 실패 후 1회 재시도",
+   "expect_real": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T01-B",
+     "S-T07-A"
+    ],
+    "fallback": null,
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D2",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000102",
+     "product_category": "에어컨",
+     "monthly_fee": 36000,
+     "contract_months": 48,
+     "end_date": "2027-04-10",
+     "days_to_end": 192,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": "2026-10-21",
+     "start_date": "2023-04-10"
+    },
+    "prediction": {
+     "churn_probability": 0.61,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.07
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T01",
+      "type_name": "구독료 부담형",
+      "contribution_share": 0.62,
+      "top_features": [
+       {
+        "feature": "voc_fee_cnt_90d",
+        "label": "최근 90일 요금 문의 횟수",
+        "value": 5,
+        "shap": 0.4
+       },
+       {
+        "feature": "promo_days_to_end",
+        "label": "프로모션 종료까지 남은 일수",
+        "value": 21,
+        "shap": 0.2
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T07",
+      "type_name": "매니저 품질 불만형",
+      "contribution_share": 0.28,
+      "top_features": [
+       {
+        "feature": "manager_change_actual_cnt_365d",
+        "label": "최근 1년 실제 담당자 교체 횟수",
+        "value": 2,
+        "shap": 0.31
+       },
+       {
+        "feature": "attitude_complaint_cnt_90d",
+        "label": "최근 90일 태도 불만 접수 횟수",
+        "value": 2,
+        "shap": 0.15
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 6,
+      "by_category": {
+       "요금문의": 5,
+       "태도불만": 1
+      },
+      "unresolved": 1
+     }
+    },
+    "recent_actions": [
+     {
+      "action_id": 901,
+      "solution_id": "S-T01-A",
+      "action_category": "정보제공",
+      "action_status": "조치완료",
+      "offer_cost": 0,
+      "created_at": "2026-09-20"
+     }
+    ],
+    "customer": {
+     "ad_consent_yn": "Y"
+    },
+    "facts": {
+     "unapplied_discount_yn": "N",
+     "days_since_last_visit": 5,
+     "attitude_complaint_cnt_30d": 1,
+     "manager_change_confirmed_yn": "N",
+     "has_upcoming_visit": "N"
+    }
+   },
+   "expect_rule": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T01-B",
+     "S-T07-A"
+    ],
+    "excluded": {
+     "S-T01-A": "COOLDOWN_SOLUTION",
+     "S-T07-B": "MAX_ACTIONS"
+    },
+    "uncovered_types": []
+   },
+   "llm_script": [
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-T01-B",
+        "type_id": "T01",
+        "selection_reason": "최근 90일 요금 문의가 5회이고 프로모션 종료가 21일 남아 요금 할인 혜택을 안내할 시점입니다.",
+        "evidence": [
+         {
+          "feature": "voc_fee_cnt_90d",
+          "value": 5
+         },
+         {
+          "feature": "promo_days_to_end",
+          "value": 21
+         }
+        ],
+        "message_text": "고객님, 무조건 신청하세요. 10만 원 할인 혜택을 총 비용과 위약금 조건과 함께 안내드립니다. 신청을 원하시면 말씀해 주세요."
+       },
+       {
+        "priority": 2,
+        "solution_id": "S-T07-A",
+        "type_id": "T07",
+        "selection_reason": "최근 1년 동안 담당 매니저가 2회 바뀌고 태도 불만 상담이 2건이어서 변경 검토가 필요합니다.",
+        "evidence": [
+         {
+          "feature": "manager_change_actual_cnt_365d",
+          "value": 2
+         },
+         {
+          "feature": "attitude_complaint_cnt_90d",
+          "value": 2
+         }
+        ],
+        "message_text": "고객님, 방문 서비스 이용 중 불편을 드려 죄송합니다. 담당 매니저 변경 여부를 담당자가 검토해 연락드리겠습니다."
+       }
+      ],
+      "summary": "요금 문의가 늘고 프로모션 종료가 가까운 고객입니다. 요금 할인 혜택을 먼저, 매니저 변경 검토를 다음으로 제안합니다."
+     }
+    },
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-T01-B",
+        "type_id": "T01",
+        "selection_reason": "최근 90일 요금 문의가 5회이고 프로모션 종료가 21일 남아 요금 할인 혜택을 안내할 시점입니다.",
+        "evidence": [
+         {
+          "feature": "voc_fee_cnt_90d",
+          "value": 5
+         },
+         {
+          "feature": "promo_days_to_end",
+          "value": 21
+         }
+        ],
+        "message_text": "고객님, 프로모션 종료 이후 요금이 걱정되실 수 있어 이용 가능한 요금 할인 혜택을 총 비용과 위약금 조건과 함께 안내드립니다. 신청을 원하시면 말씀해 주세요."
+       },
+       {
+        "priority": 2,
+        "solution_id": "S-T07-A",
+        "type_id": "T07",
+        "selection_reason": "최근 1년 동안 담당 매니저가 2회 바뀌고 태도 불만 상담이 2건이어서 변경 검토가 필요합니다.",
+        "evidence": [
+         {
+          "feature": "manager_change_actual_cnt_365d",
+          "value": 2
+         },
+         {
+          "feature": "attitude_complaint_cnt_90d",
+          "value": 2
+         }
+        ],
+        "message_text": "고객님, 방문 서비스 이용 중 불편을 드려 죄송합니다. 담당 매니저 변경 여부를 담당자가 검토해 연락드리겠습니다."
+       }
+      ],
+      "summary": "요금 문의가 늘고 프로모션 종료가 가까운 고객입니다. 요금 할인 혜택을 먼저, 매니저 변경 검토를 다음으로 제안합니다."
+     }
+    }
+   ],
+   "expect_flow": {
+    "llm_called": true,
+    "outcome": "retry_pass",
+    "attempts": 2,
+    "failed_checks_include": [
+     "M7",
+     "R2"
+    ]
+   }
+  },
+  {
+   "id": "D3",
+   "title": "90일 누적 한도 소진 → 혜택 제외, 두 번 위반 → 부분 템플릿",
+   "shows": "COST_CAP_CUM 표시, 무료 솔루션만 제안, 항목 단위 템플릿 폴백(message_source=template)",
+   "expect_real": {
+    "mode": "NO_TYPE",
+    "selected": [
+     "S-NT-A"
+    ],
+    "fallback": "NO_ELIGIBLE_CANDIDATE",
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D3",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000103",
+     "product_category": "의류관리기",
+     "monthly_fee": 20000,
+     "contract_months": 36,
+     "end_date": "2027-09-01",
+     "days_to_end": 336,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2024-09-01"
+    },
+    "prediction": {
+     "churn_probability": 0.57,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.08
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T04",
+      "type_name": "사용 빈도 저하·방치형",
+      "contribution_share": 0.74,
+      "top_features": [
+       {
+        "feature": "zero_use_weeks_12w",
+        "label": "최근 12주 중 무가동 주 수",
+        "value": 9,
+        "shap": 0.52
+       },
+       {
+        "feature": "run_count_recent4w_vs_prev4w",
+        "label": "최근 4주 가동 횟수(직전 4주 대비 비율)",
+        "value": 0.2,
+        "shap": 0.21
+       }
+      ]
+     }
+    ],
+    "context": {},
+    "recent_actions": [
+     {
+      "action_id": 902,
+      "solution_id": "S-T01-B",
+      "action_category": "혜택제안",
+      "action_status": "조치완료",
+      "offer_cost": 20000,
+      "created_at": "2026-08-01"
+     },
+     {
+      "action_id": 903,
+      "solution_id": "S-T07-B",
+      "action_category": "혜택제안",
+      "action_status": "조치완료",
+      "offer_cost": 15000,
+      "created_at": "2026-08-31"
+     }
+    ],
+    "customer": {
+     "ad_consent_yn": "N"
+    },
+    "facts": {
+     "days_since_last_use": 45,
+     "remaining_care_cnt": 0
+    },
+    "message_facts": {
+     "days_since_last_use": 45
+    }
+   },
+   "expect_rule": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T04-A"
+    ],
+    "excluded": {
+     "S-T04-B": "COST_CAP_CUM"
+    },
+    "uncovered_types": [],
+    "limits": {
+     "spent_90d": 35000,
+     "remaining_cumulative": 5000
+    }
+   },
+   "llm_script": [
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-T04-A",
+        "type_id": "T04",
+        "selection_reason": "최근 12주 중 9주 동안 사용 기록이 없어 사용 방법과 기능 안내가 필요합니다.",
+        "evidence": [
+         {
+          "feature": "zero_use_weeks_12w",
+          "value": 9
+         },
+         {
+          "feature": "run_count_recent4w_vs_prev4w",
+          "value": 0.2
+         }
+        ],
+        "message_text": "고객님, 최근 이용이 줄어 이탈이 걱정되어 사용 방법을 안내드립니다. 앱 또는 상담으로 확인하실 수 있습니다."
+       }
+      ],
+      "summary": "이용이 크게 줄어든 고객입니다. 사용 방법·기능 안내를 제안합니다."
+     }
+    },
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-T04-A",
+        "type_id": "T04",
+        "selection_reason": "최근 12주 중 9주 동안 사용 기록이 없어 사용 방법과 기능 안내가 필요합니다.",
+        "evidence": [
+         {
+          "feature": "zero_use_weeks_12w",
+          "value": 9
+         },
+         {
+          "feature": "run_count_recent4w_vs_prev4w",
+          "value": 0.2
+         }
+        ],
+        "message_text": "고객님, 무조건 앱에서 사용 방법을 확인해 보세요. 자세한 내용은 앱 또는 상담으로 확인하실 수 있습니다."
+       }
+      ],
+      "summary": "이용이 크게 줄어든 고객입니다. 사용 방법·기능 안내를 제안합니다."
+     }
+    }
+   ],
+   "expect_flow": {
+    "llm_called": true,
+    "outcome": "partial_template",
+    "attempts": 2,
+    "failed_checks_include": [
+     "M3",
+     "M7"
+    ],
+    "message_sources": [
+     "template"
+    ]
+   }
+  },
+  {
+   "id": "D4",
+   "title": "fee_impact=증가(신모델 교체 제안): 구독료 변동·총 비용·기존 구독 안내",
+   "shows": "업그레이드 offer_cost=0, M5 규칙, 구분 중복으로 T03-A 대신 T03-C",
+   "expect_real": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T02-A"
+    ],
+    "fallback": null,
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D4",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000104",
+     "product_category": "에어컨",
+     "monthly_fee": 85000,
+     "contract_months": 60,
+     "end_date": "2026-12-20",
+     "days_to_end": 81,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2021-12-20"
+    },
+    "prediction": {
+     "churn_probability": 0.71,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.04
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T02",
+      "type_name": "해지·이사 장벽형",
+      "contribution_share": 0.57,
+      "top_features": [
+       {
+        "feature": "voc_penalty_cnt_90d",
+        "label": "최근 90일 위약금 문의 횟수",
+        "value": 3,
+        "shap": 0.36
+       },
+       {
+        "feature": "voc_cancel_cnt_90d",
+        "label": "최근 90일 해지 문의 횟수",
+        "value": 2,
+        "shap": 0.18
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T03",
+      "type_name": "재계약·갈아타기 갈등형",
+      "contribution_share": 0.31,
+      "top_features": [
+       {
+        "feature": "days_to_end",
+        "label": "계약 만료까지 남은 일수",
+        "value": 81,
+        "shap": 0.3
+       },
+       {
+        "feature": "new_model_released_yn",
+        "label": "신모델 출시 여부",
+        "value": "Y",
+        "shap": 0.19
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 5,
+      "by_category": {
+       "위약금문의": 3,
+       "해지문의": 2
+      },
+      "unresolved": 0
+     }
+    },
+    "recent_actions": [],
+    "customer": {
+     "ad_consent_yn": "N"
+    },
+    "facts": {
+     "move_signal_yn": "N",
+     "new_model_released_yn": "Y",
+     "model_discontinued_yn": "N"
+    }
+   },
+   "expect_rule": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T02-A",
+     "S-T03-C"
+    ],
+    "excluded": {
+     "S-T02-B": "MAX_ACTIONS",
+     "S-T03-A": "DUP_CATEGORY",
+     "S-T03-B": "MAX_ACTIONS"
+    },
+    "uncovered_types": []
+   },
+   "llm_script": [
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-T02-A",
+        "type_id": "T02",
+        "selection_reason": "최근 90일 위약금 문의가 3회, 해지 문의가 2회여서 위약금 산정 방식과 절차를 먼저 안내하는 것이 적절합니다.",
+        "evidence": [
+         {
+          "feature": "voc_penalty_cnt_90d",
+          "value": 3
+         },
+         {
+          "feature": "voc_cancel_cnt_90d",
+          "value": 2
+         }
+        ],
+        "message_text": "고객님, 최근 위약금과 해지 조건에 대해 문의해 주셨습니다. 중도 해지 시 위약금이 산정되는 방식과 총 납부 금액을 함께 안내드립니다. 자세한 내용은 앱 또는 상담으로 확인하실 수 있습니다."
+       },
+       {
+        "priority": 2,
+        "solution_id": "S-T03-C",
+        "type_id": "T03",
+        "selection_reason": "계약 만료가 81일 남았고 신모델이 출시되어 교체 방안을 안내할 시점이며 구독료 변동을 함께 알려야 합니다.",
+        "evidence": [
+         {
+          "feature": "days_to_end",
+          "value": 81
+         },
+         {
+          "feature": "new_model_released_yn",
+          "value": "Y"
+         }
+        ],
+        "message_text": "계약 만료(12월 20일)가 다가오며 신모델 교체 방안을 접수해 드립니다. 교체 시 구독료가 달라질 수 있어 늘어나는 금액과 총 비용을 안내드리며, 기존 구독 유지 여부도 함께 확인하실 수 있습니다."
+       }
+      ],
+      "summary": "위약금 문의가 이어지고 계약 만료가 가까워 신모델 교체를 고민할 수 있는 고객입니다. 조건 안내를 먼저, 교체 접수를 다음으로 제안합니다."
+     }
+    }
+   ],
+   "expect_flow": {
+    "llm_called": true,
+    "outcome": "pass",
+    "attempts": 1
+   }
+  },
+  {
+   "id": "D5",
+   "title": "NO_TYPE: 뚜렷한 유형 없음 → 만족도 조사",
+   "shows": "유형없음 pseudo-type, N1/N2 규칙(불만 단정 금지, 열린 질문)",
+   "expect_real": {
+    "mode": "NO_TYPE",
+    "selected": [
+     "S-NT-A"
+    ],
+    "fallback": null,
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D5",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000105",
+     "product_category": "세탁기",
+     "monthly_fee": 52000,
+     "contract_months": 48,
+     "end_date": "2027-08-01",
+     "days_to_end": 305,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2023-08-01"
+    },
+    "prediction": {
+     "churn_probability": 0.2,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.14
+    },
+    "types": [],
+    "context": {},
+    "recent_actions": [],
+    "customer": {
+     "ad_consent_yn": "Y"
+    }
+   },
+   "expect_rule": {
+    "mode": "NO_TYPE",
+    "selected": [
+     "S-NT-A"
+    ],
+    "excluded": {},
+    "uncovered_types": []
+   },
+   "llm_script": [
+    {
+     "output": {
+      "selected": [
+       {
+        "priority": 1,
+        "solution_id": "S-NT-A",
+        "type_id": "유형없음",
+        "selection_reason": "뚜렷한 이탈 유형이 식별되지 않았고 위험 순위가 상위 20% 안이어서 만족도 조사로 이유를 확인합니다.",
+        "evidence": [
+         {
+          "feature": "risk_level",
+          "value": "MID"
+         },
+         {
+          "feature": "risk_rank_pct",
+          "value": 0.14
+         }
+        ],
+        "message_text": "고객님, 서비스를 이용하시면서 불편하셨던 점이 있었는지 의견을 들려주시면 개선에 반영하겠습니다. 간단한 설문으로 참여하실 수 있습니다."
+       }
+      ],
+      "summary": "뚜렷한 이탈 유형이 없는 고객이라 만족도 조사로 의견을 확인하는 것을 제안합니다."
+     }
+    }
+   ],
+   "expect_flow": {
+    "llm_called": true,
+    "outcome": "pass",
+    "attempts": 1
+   }
+  },
+  {
+   "id": "D6",
+   "title": "SURVEY_ONLY: LOW 중 위험 순위 25% → LLM 없이 템플릿 설문 추천",
+   "shows": "LLM 호출 0회, 코드가 만든 템플릿도 검증기 통과",
+   "expect_real": {
+    "mode": "SURVEY_ONLY",
+    "selected": [
+     "S-NT-A"
+    ],
+    "fallback": null,
+    "outcome": "survey_template"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D6",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000106",
+     "product_category": "냉장고",
+     "monthly_fee": 47000,
+     "contract_months": 60,
+     "end_date": "2028-01-15",
+     "days_to_end": 472,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2023-01-15"
+    },
+    "prediction": {
+     "churn_probability": 0.09,
+     "risk_level": "LOW",
+     "risk_rank_pct": 0.25
+    },
+    "types": [],
+    "context": {},
+    "recent_actions": [],
+    "customer": {
+     "ad_consent_yn": "N"
+    }
+   },
+   "expect_rule": {
+    "mode": "SURVEY_ONLY",
+    "selected": [],
+    "excluded": {},
+    "uncovered_types": []
+   },
+   "llm_script": [],
+   "expect_flow": {
+    "llm_called": false,
+    "outcome": "survey_template",
+    "attempts": 0
+   }
+  },
+  {
+   "id": "D7",
+   "title": "LLM 타임아웃 → 재시도 없이 전체 템플릿 폴백",
+   "shows": "Rule Engine 결과(후보)는 그대로, 문구만 템플릿, 시연 중 LLM 장애에도 화면이 비지 않음",
+   "expect_real": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T09-A",
+     "S-T10-C"
+    ],
+    "fallback": null,
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D7",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000107",
+     "product_category": "정수기",
+     "monthly_fee": 44000,
+     "contract_months": 60,
+     "end_date": "2027-11-30",
+     "days_to_end": 426,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2022-11-30"
+    },
+    "prediction": {
+     "churn_probability": 0.77,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.02
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T09",
+      "type_name": "제품 고장·성능 불만형",
+      "contribution_share": 0.6,
+      "top_features": [
+       {
+        "feature": "as_cnt_365d",
+        "label": "최근 1년 A/S 접수 횟수",
+        "value": 4,
+        "shap": 0.41
+       },
+       {
+        "feature": "repeat_symptom_cnt_90d",
+        "label": "최근 90일 동일 증상 A/S 반복 횟수",
+        "value": 3,
+        "shap": 0.22
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T10",
+      "type_name": "AS·고객센터 불만형",
+      "contribution_share": 0.25,
+      "top_features": [
+       {
+        "feature": "unresolved_voc_cnt",
+        "label": "미해결 문의 건수",
+        "value": 2,
+        "shap": 0.2
+       },
+       {
+        "feature": "repair_days_avg_365d",
+        "label": "최근 1년 평균 수리 소요일",
+        "value": 9,
+        "shap": 0.12
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 5,
+      "by_category": {
+       "고장문의": 3,
+       "처리지연": 2
+      },
+      "unresolved": 2
+     }
+    },
+    "recent_actions": [],
+    "customer": {
+     "ad_consent_yn": "Y"
+    },
+    "facts": {
+     "open_as_yn": "Y",
+     "first_response_unresolved_yn": "Y",
+     "same_symptom_cnt": 2,
+     "setting_inquiry_yn": "N",
+     "care_inspection_anomaly_yn": "N",
+     "expected_as_days": 4
+    },
+    "message_facts": {
+     "expected_as_days": 4
+    }
+   },
+   "expect_rule": {
+    "mode": "ACTION",
+    "selected": [
+     "S-T09-A",
+     "S-T10-A"
+    ],
+    "excluded": {
+     "S-T09-B": "MAX_ACTIONS",
+     "S-T09-C": "MAX_ACTIONS",
+     "S-T10-B": "MAX_ACTIONS",
+     "S-T10-C": "MAX_ACTIONS"
+    },
+    "uncovered_types": []
+   },
+   "llm_script": [
+    {
+     "error": "timeout"
+    }
+   ],
+   "expect_flow": {
+    "llm_called": true,
+    "outcome": "full_template",
+    "attempts": 1,
+    "failed_checks_include": [
+     "TIMEOUT"
+    ],
+    "message_sources": [
+     "template",
+     "template"
+    ]
+   }
+  },
+  {
+   "id": "D8",
+   "title": "후보 소진 → '제안할 조치 없음' (LLM 호출 안 함)",
+   "shows": "쿨다운으로 후보가 모두 제외, 제외 사유 화면 표시, 설문 자동 제안 안 함",
+   "expect_real": {
+    "mode": "NO_TYPE",
+    "selected": [
+     "S-NT-A"
+    ],
+    "fallback": "NO_ELIGIBLE_CANDIDATE",
+    "outcome": "pass"
+   },
+   "agent_input": {
+    "request_id": "REQ-DEMO-D8",
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S000108",
+     "product_category": "정수기",
+     "monthly_fee": 52000,
+     "contract_months": 60,
+     "end_date": "2027-05-05",
+     "days_to_end": 217,
+     "care_type": "방문관리",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "start_date": "2022-05-05"
+    },
+    "prediction": {
+     "churn_probability": 0.66,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.06
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T08",
+      "type_name": "영업 압박형",
+      "contribution_share": 0.66,
+      "top_features": [
+       {
+        "feature": "sales_pitch_cnt_180d",
+        "label": "최근 180일 방문 중 영업 권유 횟수",
+        "value": 3,
+        "shap": 0.44
+       },
+       {
+        "feature": "repitch_after_refusal_cnt",
+        "label": "거절 후 재권유 횟수",
+        "value": 2,
+        "shap": 0.25
+       }
+      ]
+     }
+    ],
+    "context": {},
+    "recent_actions": [
+     {
+      "action_id": 904,
+      "solution_id": "S-T08-A",
+      "action_category": "담당자조치",
+      "action_status": "조치완료",
+      "offer_cost": 0,
+      "created_at": "2026-09-25"
+     },
+     {
+      "action_id": 905,
+      "solution_id": "S-T08-B",
+      "action_category": "정보제공",
+      "action_status": "조치완료",
+      "offer_cost": 0,
+      "created_at": "2026-09-25"
+     }
+    ],
+    "customer": {
+     "ad_consent_yn": "N"
+    },
+    "facts": {
+     "sales_voc_cnt_30d": 1,
+     "days_since_last_care": 5
+    }
+   },
+   "expect_rule": {
+    "mode": "ACTION",
+    "selected": [],
+    "excluded": {
+     "S-T08-A": "COOLDOWN_SOLUTION",
+     "S-T08-B": "COOLDOWN_SOLUTION"
+    },
+    "uncovered_types": [
+     "T08"
+    ]
+   },
+   "llm_script": [],
+   "expect_flow": {
+    "llm_called": false,
+    "outcome": "no_action",
+    "attempts": 0
+   }
+  }
+ ]
+}

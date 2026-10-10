@@ -1,0 +1,34 @@
+# Agent 설정. 비밀값(API 키·DB 비밀번호)은 여기에 쓰지 않는다 — 환경변수(OPENAI_API_KEY, DATABASE_URL) 사용.
+rules:
+  cooldown_same_solution_days: 14        # [제안] 같은 솔루션 재발송 금지 기간(조치완료만 셈, 반려는 안 셈)
+  cooldown_count_statuses: ["조치완료"]
+  cost_cap_ratio: 1.0                    # [가정] 1회 offer_cost ≤ 월 구독료 × 1.0
+  cost_cap_cumulative_ratio: 2.0         # [가정] 90일 누적 ≤ 월 구독료 × 2.0
+  cost_cap_cumulative_days: 90
+  max_actions: 2
+  survey_recommend_rank_range: [0.20, 0.30]
+  fallback_survey_when_empty: true       # [확정] 후보가 0건이면 만족도 조사(S-NT-A)로 대체
+  unknown_required_fact: fail            # [제안] '사건이 있었다'고 말하는 조건(required)의 값이 없으면 후보 제외. pass면 통과
+llm:
+  provider: mock                         # mock | openai (openai인데 키가 없으면 앱은 뜨고 템플릿으로만 동작, /health에 표시)
+  model: gpt-4o-mini                     # [팀 결정 필요] 계정에서 쓸 수 있는 모델로 교체
+  api_key_env: OPENAI_API_KEY
+  temperature: null                      # null이면 보내지 않음(일부 추론형 모델은 temperature를 거부)
+  first_timeout_s: 10
+  retry_timeout_s: 8
+  deadline_s: 15
+  max_message_chars: 400                 # [확정] 알림톡 보고서 형식(▶ 항목 포함) 본문 한도
+  banned_phrases_extra: []               # [제안] 팀이 추가할 금지 표현(검증기 기본 목록 PRESSURE에 더해 M7로 검사)
+facts:
+  trial_days: 7                          # [확정] S-T04-E 체험 기간 = 설치(start_date)부터 7일
+  short_care_minutes: 20                 # [가정] 케어 소요가 이보다 짧으면 '짧은 케어'(S-T05-A)
+  season_peak_mmdd:                      # [가정] 제품군별 성수기 시작일(S-T04-D). 없는 제품군은 '계절 없음'
+    에어컨: "06-15"
+    건조기: "07-01"
+    정수기: "07-01"
+clock: simulated                         # simulated: 결정 시각 = 기준일 + 현재 시각(시뮬레이션의 '오늘' = 기준일) | real: 실제 시각
+source: demo                             # demo(데모 8건 JSON) | sql(PostgreSQL 예측·이벤트 테이블)
+storage:
+  backend: memory                        # memory | sql
+  database_url_env: DATABASE_URL         # 예: postgresql+psycopg2://user:pw@host/db
+catalog_path: data/solution_catalog.json

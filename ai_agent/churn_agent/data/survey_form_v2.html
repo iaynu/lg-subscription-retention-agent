@@ -1,0 +1,649 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>구독 이용 경험 설문</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+  /* Layout: one centered 520px column. Slim preview strip, progress line, one question card, sticky action bar. */
+  :root{
+    --bg:#edf0ee; --surface:#ffffff; --ink:#1b2523; --muted:#5b6965; --line:#d2dad7;
+    --accent:#1f6b59; --accent-ink:#ffffff; --sel:#e2f0eb; --strip:#dfe6e3;
+    --f-body:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    --f-head:'IBM Plex Sans KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#111716; --surface:#192120; --ink:#e7eeec; --muted:#9aaaa5; --line:#2b3835;
+      --accent:#5fc4a6; --accent-ink:#07201a; --sel:#1c3a31; --strip:#1e2826; color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#111716; --surface:#192120; --ink:#e7eeec; --muted:#9aaaa5; --line:#2b3835;
+    --accent:#5fc4a6; --accent-ink:#07201a; --sel:#1c3a31; --strip:#1e2826; color-scheme:dark;
+  }
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.6;
+    padding-inline:16px; padding-block:14px 28px; word-break:keep-all;
+  }
+  .shell{max-width:520px; margin:0 auto; display:flex; flex-direction:column; gap:12px}
+  .strip{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 12px;
+    background:var(--strip); border-radius:10px; padding:8px 12px; font-size:12.5px; color:var(--muted);
+  }
+  .strip .r{display:flex; align-items:center; gap:12px}
+  .strip button{
+    background:none; border:0; color:var(--accent); font:600 12.5px var(--f-body); cursor:pointer;
+    padding:4px 0; text-decoration:underline; text-underline-offset:3px;
+  }
+  .bar{height:4px; background:var(--line); border-radius:4px; overflow:hidden}
+  .bar i{display:block; height:100%; width:0; background:var(--accent); transition:width .25s ease}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 20px 0}
+  .sec{font-size:13px; font-weight:700; color:var(--accent); letter-spacing:.04em}
+  h1.q{
+    font:600 22px/1.4 var(--f-head); margin:6px 0 6px; text-wrap:balance; outline:none;
+  }
+  .hint{color:var(--muted); font-size:14.5px; margin:0 0 16px}
+  .grp{border:0; padding:0; margin:0 0 18px; min-width:0}
+  .glabel{font-weight:700; font-size:15px; padding:0; margin-bottom:8px}
+  .opts{display:flex; flex-direction:column; gap:8px}
+  .optwrap{display:flex; flex-direction:column}
+  .opt{
+    position:relative; display:flex; align-items:center; gap:12px; min-height:52px; padding:11px 14px;
+    border:1.5px solid var(--line); border-radius:10px; cursor:pointer; background:var(--surface);
+  }
+  .opt:hover{border-color:var(--muted)}
+  .opt.on{border-color:var(--accent); background:var(--sel)}
+  .opt input{position:absolute; opacity:0; width:1px; height:1px}
+  .mark{
+    flex:none; width:22px; height:22px; border:2px solid var(--muted); border-radius:50%;
+    position:relative; background:var(--surface);
+  }
+  .mark.sq{border-radius:6px}
+  .mark::after{content:""; position:absolute}
+  .mark:not(.sq)::after{inset:4px; border-radius:50%; background:var(--accent-ink); transform:scale(0); transition:transform .12s}
+  .mark.sq::after{
+    left:6px; top:1px; width:6px; height:12px; border:solid var(--accent-ink); border-width:0 2.5px 2.5px 0;
+    transform:rotate(45deg) scale(0); transition:transform .12s;
+  }
+  input:checked + .mark{background:var(--accent); border-color:var(--accent)}
+  input:checked + .mark:not(.sq)::after{transform:scale(1)}
+  input:checked + .mark.sq::after{transform:rotate(45deg) scale(1)}
+  input:focus-visible + .mark{outline:3px solid var(--accent); outline-offset:2px}
+  .lbl{min-width:0; overflow-wrap:anywhere}
+  .txt, textarea{
+    width:100%; margin-top:8px; padding:12px 14px; font:16px/1.5 var(--f-body); color:var(--ink);
+    background:var(--surface); border:1.5px solid var(--line); border-radius:10px;
+  }
+  textarea{margin-top:0; resize:vertical; min-height:130px}
+  .txt:focus, textarea:focus{outline:3px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+  .actions{
+    position:sticky; bottom:0; display:flex; gap:10px; margin:20px -20px 0; padding:14px 20px;
+    padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+    background:var(--surface); border-top:1px solid var(--line); border-radius:0 0 14px 14px;
+  }
+  .btn{
+    min-height:52px; border-radius:10px; font:600 16px var(--f-body); cursor:pointer;
+    border:1.5px solid transparent; padding:0 20px;
+  }
+  .btn.primary{flex:1; background:var(--accent); color:var(--accent-ink)}
+  .btn.ghost{background:transparent; border-color:var(--line); color:var(--ink)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .btn:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+  dl.facts{margin:18px 0 6px; display:grid; grid-template-columns:auto 1fr; gap:10px 16px}
+  dl.facts dt{color:var(--muted); font-size:14px}
+  dl.facts dd{margin:0}
+  details{margin:8px 0 4px; border:1px solid var(--line); border-radius:10px; padding:10px 14px}
+  summary{cursor:pointer; font-weight:600; font-size:14.5px}
+  ol.path{margin:12px 0 4px; padding-left:20px; display:flex; flex-direction:column; gap:10px; font-size:14px}
+  ol.path .a{color:var(--accent); font-weight:500}
+  .endcard{padding-bottom:20px}
+  .endcard .btn{margin-top:14px}
+  @media (prefers-reduced-motion: reduce){
+    .bar i, .mark::after{transition:none}
+  }
+  @media (max-width:420px){
+    .card{padding-inline:16px}
+    .actions{margin-inline:-16px; padding-inline:16px}
+  }
+</style>
+
+<div class="shell">
+  <div class="strip" id="strip">
+    <span>설문 화면 시안 · 입력한 내용은 저장되지 않아요</span>
+    <span class="r"><span id="rem"></span><button type="button" id="reset">처음부터</button></span>
+  </div>
+  <div class="bar" id="bar" hidden><i id="fill"></i></div>
+  <main id="app"></main>
+</div>
+
+<script>
+(function(){
+  var $app = document.getElementById('app');
+  var $bar = document.getElementById('bar');
+  var $fill = document.getElementById('fill');
+  var $rem = document.getElementById('rem');
+  var st = { a:{}, stack:[], cur:'welcome' };
+
+  function h(tag, props){
+    var e = document.createElement(tag);
+    props = props || {};
+    Object.keys(props).forEach(function(k){
+      var v = props[k];
+      if(v === false || v == null) return;
+      if(k === 'class') e.className = v;
+      else if(k === 'text') e.textContent = v;
+      else if(k.indexOf('on') === 0) e.addEventListener(k.slice(2), v);
+      else if(v === true) e.setAttribute(k, '');
+      else e.setAttribute(k, v);
+    });
+    for(var i = 2; i < arguments.length; i++){
+      var c = arguments[i];
+      if(c == null || c === false) continue;
+      e.append(c.nodeType ? c : document.createTextNode(c));
+    }
+    return e;
+  }
+
+  /* ---------- 보기 목록 ---------- */
+  var ISSUES = [
+    ['cost','구독료·총비용이 구매보다 부담스러움'],
+    ['exit','해지·이사 절차가 어렵거나 비용이 듦'],
+    ['renew','재계약·갈아타기가 부담스러움 (권유, 요금 인상, 신모델·단종)'],
+    ['idle','제품을 거의 쓰지 않게 됨'],
+    ['care','케어가 부실하거나 케어 후 문제가 생김'],
+    ['visit','방문 일정이 미뤄지거나 지켜지지 않음, 일정 맞추기가 어려움'],
+    ['manager','담당 매니저 때문에 불편했음'],
+    ['sales','방문 중 영업 권유가 부담스러움'],
+    ['fail','제품 고장·성능 문제'],
+    ['cs','A/S·고객센터 대응이 불만스러움'],
+    ['other','기타']
+  ];
+  var SOL = [
+    ['resched','일정 재조정'],['free','무상 방문·수리'],['fee','요금 감면'],['swap','대체 제품 제공'],
+    ['penalty','위약금 면제·감면'],['apology','사과·안내'],['manager','담당자 지정'],
+    ['change','약정 중 제품 교체'],['pause','일시정지'],['other','기타']
+  ];
+  function solOpts(extra){ return SOL.slice(0, -1).concat(extra, [SOL[SOL.length - 1]]); }
+  var NEWSOL = [
+    ['alert','방문 일정 실시간 알림'],['loan','수리 중 대체 제품 대여'],['mgr','담당 매니저 지정'],
+    ['step','위약금 단계별 감면'],['swap','약정 중 제품 교체'],['pause','이용 일시정지'],
+    ['other','기타'],['none','어떤 것도 해당 없어요']
+  ];
+  var DK = ['?','잘 모르겠어요'];
+  var DK2 = ['?','기억나지 않아요'];
+  var DEEP = {
+    cost:[
+      { title:'구독이 구매보다 얼마나 더 비싸다고 느끼셨나요?',
+        opts:[['p10','10% 미만'],['p30','10~30% 정도'],['p31','30% 이상'],DK] },
+      { title:'어떤 점이 가장 부담스러우셨나요?',
+        opts:[['fixed','매달 나가는 고정비 자체가 부담이에요'],['total','약정 기간 전체로 보면 구매보다 총비용이 커요'],
+              ['promo','프로모션이 끝난 뒤 요금이 올랐어요'],['missed','받을 수 있는 할인(결합·선납·제휴카드)을 못 받았어요'],['other','기타'],DK2] }
+    ],
+    exit:[
+      { title:'해지·이사할 때 어떤 부분이 가장 어려우셨나요?',
+        opts:[['pen','위약금'],['rm','철거·수거 비용'],['wait','상담·접수가 늦어짐'],['reinst','이사 후 재설치가 불확실함'],['other','기타'],DK2] },
+      { title:'그 일로 추가로 낸 비용이 있었나요?',
+        opts:[['0','없어요'],['u10','10만 원 미만'],['u30','10~30만 원'],['o30','30만 원 이상'],DK2] }
+    ],
+    renew:[
+      { title:'재계약·갈아타기에서 어떤 점이 가장 불편하셨나요?',
+        opts:[['push','재계약·제품 교체 권유가 잦거나 부담스러웠어요'],['price','재계약하면 요금이 오르는 점이 부담이에요'],
+              ['newmodel','신모델이 나와서 지금 제품이 아쉬워요'],['eol','단종·부품 지원 종료가 걱정돼요'],['other','기타']] },
+      { title:'재계약·교체 제안에 어떻게 하셨나요?',
+        opts:[['accept','받아들였어요'],['refuse','거절했어요'],['think','아직 고민 중이에요'],['switch','타사 전환을 알아봤어요'],DK2] }
+    ],
+    idle:[
+      { title:'최근 3개월 동안 제품을 얼마나 사용하셨나요?',
+        opts:[['daily','거의 매일'],['week','일주일에 몇 번'],['month','한 달에 한두 번'],['rare','거의 쓰지 않았어요'],DK] },
+      { title:'잘 쓰지 않게 된 가장 큰 이유는 무엇인가요?',
+        opts:[['noneed','필요가 없어졌어요'],['season','계절·시기에 따라 필요할 때만 써요'],['hassle','쓰기 번거로워요'],['gap','가입할 때 기대와 달랐어요'],['other','기타']] }
+    ],
+    care:[
+      { title:'어떤 문제를 겪으셨나요?',
+        opts:[['clean','청소·관리가 부실했어요'],['skip','점검을 건성으로 했어요'],['dmg','케어 뒤에 고장·누수가 생겼어요'],['other','기타']] },
+      { title:'그 문제로 재방문이나 보상을 받으셨나요?',
+        opts:[['full','받았어요'],['part','일부만 받았어요'],['none','받지 못했어요'],DK2] }
+    ],
+    visit:[
+      { title:'방문 일정이 미뤄지거나 취소된 적은 몇 번인가요?',
+        opts:[['0','없어요'],['1','1번'],['2','2번'],['3','3번 이상'],DK] },
+      { title:'가장 오래 미뤄진 기간은 얼마였나요?',
+        opts:[['w1','1주 이내'],['w2','2주 정도'],['m1','1개월 정도'],['m2','1개월 이상'],DK] }
+    ],
+    manager:[
+      { title:'담당 매니저의 어떤 점이 불편하셨나요?',
+        opts:[['attitude','태도가 불친절했어요'],['skill','전문성이 부족했어요'],['privacy','사생활이 침해되는 느낌이었어요'],['other','기타']] },
+      { title:'담당 매니저가 몇 번 바뀌었나요?',
+        opts:[['0','바뀐 적 없어요'],['1','1번'],['2','2번'],['3','3번 이상'],DK2] }
+    ],
+    sales:[
+      { title:'방문 중 영업 권유를 받은 횟수는 어느 정도인가요?',
+        opts:[['1','1번'],['2','2~3번'],['4','4번 이상'],DK2] },
+      { title:'거절 의사를 밝힌 뒤에는 어땠나요?',
+        opts:[['stop','거절하니 멈췄어요'],['keep','거절해도 계속됐어요'],['unsaid','거절 의사를 밝히지 못했어요'],DK2] }
+    ],
+    fail:[
+      { title:'어떤 문제였나요?',
+        opts:[['noise','소음'],['perf','성능 저하'],['broken','작동 불량'],['other','기타']] },
+      { title:'같은 문제가 반복됐나요?',
+        opts:[['once','한 번뿐이었어요'],['2','2번'],['3','3번 이상'],DK2] }
+    ],
+    cs:[
+      { title:'어떤 부분이 불편하셨나요?',
+        opts:[['split','A/S가 부서별로 나뉘어 접수됐어요'],['slow','응대·연결이 늦었어요'],['blame','책임을 서로 미뤘어요'],['other','기타']] },
+      { title:'접수부터 해결까지 얼마나 걸렸나요?',
+        opts:[['d3','3일 이내'],['d7','4~7일'],['d14','8~14일'],['d15','15일 이상'],['open','아직 해결되지 않았어요'],DK2] }
+    ]
+  };
+  var SKIPB = { visit:'0', idle:'daily' };
+
+  /* ---------- 응답 도우미 ---------- */
+  function val(id){ var s = st.a[id]; return s ? s.v : undefined; }
+  function realIssues(){
+    var v = val('issues');
+    if(!Array.isArray(v)) return [];
+    return ISSUES.map(function(o){ return o[0]; }).filter(function(k){ return v.indexOf(k) > -1; });
+  }
+  function topKey(){
+    var r = realIssues();
+    if(r.length === 1) return r[0];
+    return val('top') || null;
+  }
+  function issueLabel(k){
+    if(k === 'other'){
+      var s = st.a.issues;
+      return '기타' + (s && s.o ? ': ' + s.o : '');
+    }
+    return ISSUES.filter(function(o){ return o[0] === k; })[0][1];
+  }
+  function noProblems(){ return realIssues().length === 0; }
+  function received(){
+    var v = val('action');
+    return !!v && v !== 'no' && v !== 'never';
+  }
+  function T(sec, title, hint, groups){ return { sec:sec, title:title, hint:hint, groups:groups }; }
+
+  /* ---------- 문항 정의 (skip: 해당하지 않으면 건너뜀) ---------- */
+  var SC = [
+    { id:'status', def:function(){
+      return T('이용 현황','현재 구독 상태는 어떠신가요?',null,[{ id:'status', type:'single', req:true, opts:[
+        ['done','해지를 완료했어요'],['ing','해지를 진행 중이에요'],['think','이용 중이지만 해지를 고민한 적이 있어요'],
+        ['sat','현재 구독에 만족합니다']
+      ]}]);
+    }},
+    { id:'issues', def:function(){
+      return T('불편했던 일','이용하시면서 불편했던 일을 모두 골라주세요.','여러 개 골라도 괜찮아요.',[{
+        id:'issues', type:'multi', req:true, excl:'none',
+        opts:ISSUES.concat([['none','불편했던 일은 없어요']])
+      }]);
+    }},
+    { id:'top', skip:function(){ return realIssues().length < 2; }, def:function(){
+      return T('불편했던 일','그중 가장 불편했던 일 하나를 골라주세요.',null,[{
+        id:'top', type:'single', noText:true,
+        opts:realIssues().map(function(k){ return [k, issueLabel(k)]; })
+      }]);
+    }},
+    { id:'form', skip:function(){ return !topKey(); }, def:function(){
+      return T('불편했던 일','불편함은 어떤 모습이었나요?',null,[{ id:'form', type:'single', opts:[
+        ['once','한 번 크게 불편한 일이 있었어요'],
+        ['repeat','비슷한 일이 여러 번 반복됐어요'],
+        ['fade','특별한 일 없이 서서히 마음이 멀어졌어요']
+      ]}]);
+    }},
+    { id:'deepA', skip:function(){ var k = topKey(); return !k || k === 'other'; }, def:function(){
+      var k = topKey();
+      var d = DEEP[k][0];
+      return T('조금 더 자세히', d.title, null, [{ id:'deepA', type:'single', opts:d.opts }]);
+    }},
+    { id:'deepB', skip:function(){
+      var k = topKey();
+      if(!k || k === 'other') return true;
+      return SKIPB[k] !== undefined && val('deepA') === SKIPB[k];
+    }, def:function(){
+      var d = DEEP[topKey()][1];
+      return T('조금 더 자세히', d.title, null, [{ id:'deepB', type:'single', opts:d.opts }]);
+    }},
+    { id:'hesitate', def:function(){
+      return T('해지 고민','해지를 망설이게 하거나, 계속 이용하게 만든 점을 모두 골라주세요.','여러 개 골라도 괜찮아요.',[{
+        id:'hesitate', type:'multi', excl:'none', opts:[
+          ['pen','위약금 부담'],['pick','제품 수거가 번거로움'],['habit','익숙해서 바꾸기 귀찮음'],
+          ['term','약정이 남아 있음'],['visit','방문 관리의 장점'],['none','해당되는 것이 없어요']
+        ]
+      }]);
+    }},
+    { id:'action', skip:noProblems, def:function(){
+      return T('해결 경험','문제를 알린 뒤, 마지막으로 받은 조치는 무엇이었나요?','가장 최근에 받은 것 하나만 골라주세요.',[{
+        id:'action', type:'single',
+        opts:solOpts([['no','아무 조치도 받지 못했어요'],['never','문제를 알린 적이 없어요']])
+      }]);
+    }},
+    { id:'helped', skip:function(){ return noProblems() || !received(); }, def:function(){
+      return T('해결 경험','그 조치는 도움이 됐나요?',null,[{ id:'helped', type:'single', opts:[
+        ['solved','문제가 해결됐어요'],['part','일부만 해결됐어요'],
+        ['little','거의 도움이 안 됐어요'],['worse','오히려 더 불편해졌어요']
+      ]}]);
+    }},
+    { id:'why', skip:function(){
+      var v = val('helped');
+      return noProblems() || !received() || ['part','little','worse'].indexOf(v) < 0;
+    }, def:function(){
+      return T('해결 경험','도움이 부족했던 이유를 골라주세요.','여러 개 골라도 괜찮아요.',[{ id:'why', type:'multi', opts:[
+        ['late','너무 늦게 이뤄졌어요'],['mismatch','내 문제와 맞지 않았어요'],['again','같은 문제가 다시 생겼어요'],
+        ['diff','담당자마다 말이 달랐어요'],['unclear','설명이 부족했어요'],
+        ['promise','약속한 대로 이뤄지지 않았어요'],['other','기타']
+      ]}]);
+    }},
+    { id:'wanted', skip:noProblems, def:function(){
+      var never = val('action') === 'never';
+      return T('원하셨던 해결 방법',
+        never ? '문제가 생겼다면, 어떤 해결 방법을 가장 원하셨을까요?' : '그때 가장 원했던 해결 방법은 무엇이었나요?',
+        '하나만 골라주세요.',
+        [{ id:'wanted', type:'single', opts:solOpts([['hard','어떤 방법으로도 어려웠을 것 같아요']]) }]);
+    }},
+    { id:'newsol', skip:noProblems, def:function(){
+      return T('새로운 방법','아래 방법이 있었다면 계속 이용했을 것 같은 것을 골라주세요.','여러 개 골라도 괜찮아요.',[{
+        id:'newsol', type:'multi', excl:'none', opts:NEWSOL
+      }]);
+    }},
+    { id:'motive', def:function(){
+      return T('이용 방식','구독을 선택한 가장 큰 이유는 무엇이었나요?','가장 가까운 것 하나만 골라주세요.',[{
+        id:'motive', type:'single', opts:[
+          ['cost','초기 구매 비용 부담을 줄이려고'],['care','정기 방문 관리를 받으려고'],
+          ['new','최신 제품을 써보려고'],['promo','프로모션·혜택이 좋아서'],
+          ['move','이사·결혼 등 새 출발 시기라서'],['recom','가족·지인이 추천해서'],
+          ['default','구매하려 했는데 구독 가격이 먼저 보여서 (구독인 줄 몰랐거나 나중에 알았어요)'],['other','기타']
+        ]
+      }]);
+    }},
+    { id:'gap', skip:function(){ return !val('motive'); }, def:function(){
+      if(val('motive')==='default'){
+        return T('이용 방식','구독 조건(약정 기간·위약금·관리 서비스)은 가입할 때 알고 있던 것과 어땠나요?','가장 가까운 것 하나만 골라주세요.',[{
+          id:'gap', type:'single', opts:[
+            ['below','가입 후에 알게 된 내용이 많았어요'],['same','대체로 알고 있던 대로였어요'],['over','몰랐지만 오히려 만족해요']
+          ]
+        }]);
+      }
+      return T('이용 방식','그 이유로 기대했던 점은 실제 이용에서 어땠나요?','앞에서 고르신 이유를 떠올려 답해 주세요.',[{
+        id:'gap', type:'single', opts:[
+          ['below','기대에 못 미쳤어요'],['same','기대와 비슷했어요'],['over','기대 이상이었어요']
+        ]
+      }]);
+    }},
+    { id:'firstact', skip:noProblems, def:function(){
+      return T('이용 방식','문제가 생겼을 때 가장 먼저 한 행동은 무엇이었나요?','가장 가까운 것 하나만 골라주세요.',[{
+        id:'firstact', type:'single', opts:[
+          ['call','고객센터에 전화했어요'],['app','앱·채팅으로 문의했어요'],['tech','방문 기사에게 직접 연락했어요'],
+          ['search','커뮤니티·후기에서 먼저 찾아봤어요'],['wait','일단 참고 기다렸어요'],
+          ['self','직접 해결하거나 다른 업체에 맡겼어요'],['other','기타']
+        ]
+      }]);
+    }},
+    { id:'research', def:function(){
+      return T('이용 방식','해지를 결정(또는 고민)하면서 알아본 것을 모두 골라주세요.','여러 개 골라도 괜찮아요.',[{
+        id:'research', type:'multi', excl:'none', opts:[
+          ['penalty','위약금·해지 조건'],['review','커뮤니티·후기'],['compare','다른 업체·구매 가격 비교'],
+          ['agency','소비자원·민원 절차'],['ask','고객센터 문의'],['none','따로 알아보지 않았어요'],['other','기타']
+        ]
+      }]);
+    }},
+    { id:'after', def:function(){
+      var think = val('status') === 'think';
+      return T('이용 방식', think ? '해지한다면 어떻게 하실 건가요?' : '해지 후에는 어떻게 하실 계획인가요?',
+        '가장 가까운 것 하나만 골라주세요.',[{
+        id:'after', type:'single', opts:[
+          ['buy','제품을 직접 구매해요'],['sub','다른 업체의 구독·렌탈을 이용해요'],
+          ['keep','쓰던 제품을 계속 사용해요'],['used','중고나 다른 브랜드 제품을 사요'],
+          ['none','그 가전을 쓰지 않아요'],['unsure','아직 모르겠어요'],['other','기타']
+        ]
+      }]);
+    }},
+    { id:'channel', def:function(){
+      return T('안내 방식','이용 관련 안내를 받는다면 어떤 방식이 편하세요?','여러 개 골라도 괜찮아요.',[{
+        id:'channel', type:'multi', excl:'none', opts:[
+          ['talk','카카오 알림톡'],['sms','문자 메시지'],['push','앱 푸시 알림'],['mail','이메일'],
+          ['call','전화·상담원 연락'],['none','안내를 받고 싶지 않아요']
+        ]
+      }]);
+    }},
+    { id:'ctx', def:function(){
+      var sat = val('status') === 'sat';
+      var t = T('생활 환경','생활 환경과 이용 경험을 간단히 알려주세요.','선택 사항이에요.',[
+        { id:'hh', type:'single', label:'가구 형태', opts:[
+          ['solo','1인 가구'],['couple','신혼·2인 가구'],['baby','영유아 자녀가 있어요'],
+          ['kid','학령기 자녀가 있어요'],['other','기타']
+        ]},
+        { id:'daytime', type:'single', label:'평일 낮 방문 가능 여부', opts:[
+          ['most','대부분 가능해요'],['some','가끔 가능해요'],['rare','거의 어려워요']
+        ]},
+        { id:'exp', type:'single', label:'구독·렌탈 이용 경험', opts:[
+          ['first','이번이 처음이에요'],['more','다른 가전도 구독·렌탈 중이에요'],['past','예전에 해지한 적이 있어요']
+        ]},
+        { id:'who', type:'single', label:'해지 결정에 가장 영향을 준 사람', opts:[
+          ['self','주로 본인이 결정했어요'],['family','가족과 상의했어요'],['famreq','가족의 요구가 컸어요'],
+          ['review','지인·커뮤니티 후기의 영향이 컸어요'],['agent','상담원 안내의 영향이 컸어요']
+        ]}
+      ]);
+      if(sat) t.groups = t.groups.filter(function(g){ return g.id !== 'who'; });
+      return t;
+    }},
+    { id:'interview', def:function(){
+      return T('추가 이야기','10분 정도 더 이야기 나눌 수 있을까요?','선택 사항이에요. 참여하시면 따로 연락드려요.',[{
+        id:'interview', type:'single', opts:[['yes','네, 참여할 수 있어요','이메일 또는 연락처'],['no','아니요']]
+      }]);
+    }},
+    { id:'open', def:function(){
+      return T('마지막 질문','이 서비스에 대해 꼭 전하고 싶은 말이 있다면 적어주세요.','없으면 그대로 제출하셔도 돼요.',[{
+        id:'open', type:'text', ph:'자유롭게 적어주세요 (최대 500자)'
+      }]);
+    }}
+  ];
+
+  /* 만족하는 응답자는 불편·해결·이용 방식 구간을 건너뛰고 생활 환경 화면으로 */
+  var SAT_SKIP = ['issues','top','form','deepA','deepB','hesitate','action','helped','why','wanted','newsol','motive','gap','firstact','research','after'];
+  SC.forEach(function(sc){
+    if(SAT_SKIP.indexOf(sc.id) < 0) return;
+    var orig = sc.skip;
+    sc.skip = function(){ return val('status') === 'sat' || (orig ? orig() : false); };
+  });
+
+  /* ---------- 흐름 ---------- */
+  function visibleIds(){
+    return SC.filter(function(s){ return !s.skip || !s.skip(); }).map(function(s){ return s.id; });
+  }
+  function nextId(cur){
+    var i = SC.map(function(s){ return s.id; }).indexOf(cur);
+    for(var j = i + 1; j < SC.length; j++){
+      if(!SC[j].skip || !SC[j].skip()) return SC[j].id;
+    }
+    return 'end';
+  }
+  function go(id){ st.stack.push(st.cur); st.cur = id; render(); }
+  function back(){ st.cur = st.stack.pop() || 'welcome'; render(); }
+  function restart(){ st.a = {}; st.stack = []; st.cur = 'welcome'; render(); }
+
+  function isAns(g){
+    var s = st.a[g.id];
+    if(!s) return false;
+    if(g.type === 'text') return !!(s.v && s.v.trim());
+    if(g.type === 'multi') return s.v.length > 0;
+    return s.v != null;
+  }
+  function optText(g, o){
+    if(o[2]) return o[2];
+    if(o[0] === 'other' && !g.noText) return '직접 입력';
+    return null;
+  }
+
+  /* ---------- 화면 조각 ---------- */
+  function renderGroup(g, onChange){
+    var fs = h('div', { class:'grp', role:'group', 'aria-labelledby':'qtitle' });
+    if(g.label) fs.append(h('div', { class:'glabel', text:g.label }));
+
+    if(g.type === 'text'){
+      var ta = h('textarea', { id:'f-' + g.id, rows:5, maxlength:500, placeholder:g.ph || '' });
+      ta.value = (st.a[g.id] && st.a[g.id].v) || '';
+      ta.addEventListener('input', function(){ st.a[g.id] = { v:ta.value, o:'' }; onChange(); });
+      fs.append(ta);
+      return fs;
+    }
+
+    var multi = g.type === 'multi';
+    var list = h('div', { class:'opts' });
+    var rows = [];
+    g.opts.forEach(function(o){
+      var k = o[0], l = o[1], t = optText(g, o);
+      var id = 'o-' + g.id + '-' + k;
+      var inp = h('input', { type:multi ? 'checkbox' : 'radio', name:g.id, id:id, value:k });
+      var row = h('label', { class:'opt', 'for':id }, inp,
+        h('span', { class:'mark' + (multi ? ' sq' : '') }), h('span', { class:'lbl', text:l }));
+      var tx = null;
+      if(t){
+        tx = h('input', { type:'text', class:'txt', placeholder:t, maxlength:80, 'aria-label':l + ' 입력' });
+        tx.hidden = true;
+        tx.value = (st.a[g.id] && st.a[g.id].o) || '';
+        tx.addEventListener('input', function(){
+          var s = st.a[g.id] || (st.a[g.id] = { v:multi ? [] : null, o:'' });
+          s.o = tx.value;
+        });
+      }
+      list.append(h('div', { class:'optwrap' }, row, tx));
+      rows.push({ k:k, inp:inp, row:row, tx:tx });
+
+      inp.addEventListener('change', function(){
+        var s = st.a[g.id] || (st.a[g.id] = { v:multi ? [] : null, o:'' });
+        if(multi){
+          var set = s.v.slice();
+          var at = set.indexOf(k);
+          if(inp.checked){
+            if(k === g.excl) set = [k];
+            else { set = set.filter(function(x){ return x !== g.excl; }); if(set.indexOf(k) < 0) set.push(k); }
+          } else if(at > -1) set.splice(at, 1);
+          s.v = set;
+        } else { s.v = k; }
+        sync();
+        onChange();
+        if(inp.checked && tx) setTimeout(function(){ tx.focus(); }, 0);
+      });
+    });
+    function sync(){
+      var s = st.a[g.id];
+      var sel = s ? (multi ? s.v : [s.v]) : [];
+      rows.forEach(function(r){
+        var on = sel.indexOf(r.k) > -1;
+        r.inp.checked = on;
+        r.row.classList.toggle('on', on);
+        if(r.tx) r.tx.hidden = !on;
+      });
+    }
+    sync();
+    fs.append(list);
+    return fs;
+  }
+
+  function updateStrip(){
+    var ids = visibleIds();
+    var i = ids.indexOf(st.cur);
+    if(st.cur === 'welcome' || st.cur === 'end' || i < 0){
+      $bar.hidden = true;
+      $rem.textContent = st.cur === 'end' ? '제출 완료' : '';
+      return;
+    }
+    $bar.hidden = false;
+    $fill.style.width = Math.round((i / ids.length) * 100) + '%';
+    var left = ids.length - i - 1;
+    $rem.textContent = left > 0 ? '남은 문항 약 ' + left + '개' : '마지막 문항';
+  }
+
+  function renderWelcome(){
+    $app.append(h('section', { class:'card endcard' },
+      h('div', { class:'sec', text:'이용 경험 설문' }),
+      h('h1', { class:'q', id:'qtitle', tabindex:'-1', text:'구독 서비스 이용 경험을 들려주세요' }),
+      h('p', { class:'hint', text:'불편했던 점과 필요한 도움을 알려주시면 서비스를 고치는 데 쓰겠습니다.' }),
+      h('dl', { class:'facts' },
+        h('dt', { text:'소요 시간' }), h('dd', { text:'약 6~7분'}),
+        h('dt', { text:'응답 방법' }), h('dd', { text:'대부분 보기에서 고르시면 돼요. 답하기 어려운 문항은 건너뛰어도 됩니다.' }),
+        h('dt', { text:'활용' }), h('dd', { text:'응답은 통계 목적으로만 사용돼요.' })
+      ),
+      h('button', { type:'button', class:'btn primary', style:'width:100%', text:'시작하기',
+        onclick:function(){ go('status'); } })
+    ));
+  }
+
+  function ansText(g){
+    var s = st.a[g.id];
+    if(!s) return '건너뜀';
+    if(g.type === 'text') return s.v && s.v.trim() ? s.v.trim() : '건너뜀';
+    var sel = g.type === 'multi' ? s.v : (s.v == null ? [] : [s.v]);
+    if(!sel.length) return '건너뜀';
+    return sel.map(function(k){
+      var o = g.opts.filter(function(x){ return x[0] === k; })[0];
+      var t = o ? o[1] : k;
+      if(o && optText(g, o) && s.o) t += ' (' + s.o + ')';
+      return t;
+    }).join(' · ');
+  }
+
+  function renderEnd(){
+    var ol = h('ol', { class:'path' });
+    st.stack.forEach(function(id){
+      var sc = SC.filter(function(s){ return s.id === id; })[0];
+      if(!sc) return;
+      var d = sc.def();
+      var q = d.groups.length > 1 ? d.title : d.title;
+      var li = h('li', null, h('div', { text:q }));
+      d.groups.forEach(function(g){
+        li.append(h('div', { class:'a', text:(g.label ? g.label + ': ' : '') + ansText(g) }));
+      });
+      ol.append(li);
+    });
+    $app.append(h('section', { class:'card endcard' },
+      h('div', { class:'sec', text:'제출 완료' }),
+      h('h1', { class:'q', id:'qtitle', tabindex:'-1', text:'응답해 주셔서 감사합니다' }),
+      h('p', { class:'hint', text:'남겨주신 의견은 서비스를 개선하는 데 사용하겠습니다.' }),
+      h('details', null,
+        h('summary', { text:'이번 응답이 거친 문항 ' + ol.children.length + '개 (시안 확인용)' }), ol),
+      h('button', { type:'button', class:'btn ghost', style:'width:100%', text:'다른 응답으로 다시 해보기',
+        onclick:restart })
+    ));
+  }
+
+  function render(){
+    $app.replaceChildren();
+    updateStrip();
+    if(st.cur === 'welcome') renderWelcome();
+    else if(st.cur === 'end') renderEnd();
+    else {
+      var sc = SC.filter(function(s){ return s.id === st.cur; })[0];
+      var d = sc.def();
+      var nextBtn = h('button', { type:'button', class:'btn primary' });
+      function refresh(){
+        var reqOk = d.groups.every(function(g){ return !g.req || isAns(g); });
+        var any = d.groups.some(isAns);
+        var last = nextId(st.cur) === 'end';
+        nextBtn.disabled = !reqOk;
+        nextBtn.textContent = last ? '제출' : (any ? '다음' : '건너뛰기');
+        updateStrip();
+      }
+      nextBtn.addEventListener('click', function(){ go(nextId(st.cur)); });
+      var card = h('section', { class:'card' },
+        h('div', { class:'sec', text:d.sec }),
+        h('h1', { class:'q', id:'qtitle', tabindex:'-1', text:d.title }),
+        d.hint ? h('p', { class:'hint', text:d.hint }) : h('div', { style:'height:14px' })
+      );
+      d.groups.forEach(function(g){ card.append(renderGroup(g, refresh)); });
+      card.append(h('div', { class:'actions' },
+        h('button', { type:'button', class:'btn ghost', text:'이전', onclick:back }), nextBtn));
+      $app.append(card);
+      refresh();
+    }
+    var t = document.getElementById('qtitle');
+    if(t) t.focus({ preventScroll:true });
+    window.scrollTo(0, 0);
+  }
+
+  document.getElementById('reset').addEventListener('click', restart);
+  render();
+})();
+</script>
+
+</body></html>

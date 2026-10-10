@@ -1,0 +1,66 @@
+# 설문 합성 매핑표 (설계: survey_simulator_design.md §2). 유형·솔루션이 바뀌면 여기만 고친다.
+# 모든 확률·가중은 [가정] 시작값이다. 가설 기반 synthetic data.
+
+# §2.1 유형 -> 설문 "불편했던 일"(issues) 보기 코드 (1:1)
+type_to_issue:
+  T01: cost
+  T02: exit
+  T03: renew
+  T04: idle
+  T05: care
+  T06: visit
+  T07: manager
+  T08: sales
+  T09: fail
+  T10: cs
+
+# §2.1 헷갈리는 쌍(churn_types_10.md §4). 다른 기존 유형 코드를 뽑을 때 이 쌍의 가중치를 곱한다.
+confusable_pairs: [[T05, T07], [T05, T09], [T06, T10], [T07, T10], [T01, T02], [T02, T03]]
+confusable_weight: 3
+
+# §2.2 숨은 신규 주제 -> 설문에서 드러나는 불편 코드 후보(검증 전용 정답, 모델 입력 금지)
+hidden_topics:
+  H-A: {name: 가입 시 설명·서비스 범위 불일치, issue_codes: [cost, exit]}
+  H-B: {name: 케어 가치 불신·자가관리 대체, issue_codes: [idle, cost]}
+
+# §2.3 불편 코드 -> 원했던 해결 방법(wanted): [주 대응, 부 대응]  (주 60% / 부 40%)
+issue_to_wanted:
+  cost: [fee, change]
+  exit: [penalty, pause]
+  renew: [apology, manager]
+  idle: [pause, change]
+  care: [free, apology]
+  visit: [resched, fee]
+  manager: [manager, apology]
+  sales: [apology, manager]
+  fail: [free, swap]
+  cs: [manager, apology]
+
+# §2.4 불편 코드 -> 새로운 방법(newsol) 보기. 한 보기에 여러 불편 코드가 대응한다.
+newsol_to_issues:
+  alert: [visit]
+  loan: [fail, cs]
+  mgr: [manager, cs, care]
+  step: [exit, cost]
+  swap: [idle, fail]
+  pause: [exit, idle, renew]
+
+# §2.5 솔루션 -> 설문 action 보기. 한 솔루션이 둘 이상에 대응하면 목록 앞이 기본(주), 뒤가 부.
+# 여기에 없는 솔루션은 대응하는 설문 보기가 없으므로 'other'(기타)로 기록한다 [팀 결정, 2026-10-09: (a)].
+solution_to_action:
+  S-T06-A: [resched]
+  S-T06-C: [resched]
+  S-T05-C: [free]
+  S-T01-D: [fee]
+  S-T01-E: [fee]
+  S-T01-C: [fee]
+  S-T06-D: [apology, fee]      # 사과 포인트이자 요금성 보상 -> 설계서가 apology·fee 둘 다에 둠 [가정: 주 apology]
+  S-T10-D: [swap]
+  S-T09-D: [swap]
+  S-T04-E: [penalty]
+  S-T02-A: [penalty]
+  S-T07-D: [manager]
+  S-T10-C: [manager]
+  S-T03-B: [change]
+  S-T03-C: [change]
+unmapped_action_code: other

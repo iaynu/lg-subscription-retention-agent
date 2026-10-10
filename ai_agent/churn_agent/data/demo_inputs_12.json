@@ -1,0 +1,1443 @@
+{
+ "note": "가설 기반 synthetic data(가상 고객). 모델 버전: 12건 시연",
+ "cases": [
+  {
+   "case_id": "D01",
+   "scenario": "복합 유형 + 광고 동의: 사용 저하와 놓친 할인",
+   "expected": "알림톡(정보성)과 친구톡(광고성)이 따로 나뉘어 발송",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S007758",
+     "product_category": "정수기",
+     "monthly_fee": 45600,
+     "contract_months": 48,
+     "start_date": "2024-09-22",
+     "end_date": "2028-09-22",
+     "days_to_end": 723,
+     "care_type": "방문관리",
+     "care_renewal_date": "2027-09-22",
+     "promo_end_date": "2026-10-10",
+     "new_model_released_yn": "Y",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C007758",
+     "customer_name": "송현우",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.4817,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.0614
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T01",
+      "type_name": "구독료 부담형",
+      "contribution_share": 0.6878,
+      "top_features": [
+       {
+        "feature": "billed_change_rate_3m",
+        "label": "최근 3개월 청구액 변화율",
+        "value": 0.116,
+        "shap": 1.43
+       },
+       {
+        "feature": "promo_days_to_end",
+        "label": "프로모션 종료까지 남은 일수",
+        "value": 10,
+        "shap": 0.714
+       },
+       {
+        "feature": "voc_fee_cnt_90d",
+        "label": "최근 90일 요금 문의 횟수",
+        "value": 6,
+        "shap": 0.298
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T04",
+      "type_name": "사용 빈도 저하·방치형",
+      "contribution_share": 0.2612,
+      "top_features": [
+       {
+        "feature": "zero_use_weeks_12w",
+        "label": "최근 12주 중 무가동 주 수",
+        "value": 10,
+        "shap": 0.938
+       },
+       {
+        "feature": "run_count_recent4w_vs_prev4w",
+        "label": "최근 4주 가동 횟수(직전 4주 대비 비율)",
+        "value": 0,
+        "shap": 0.13
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 6,
+      "by_category": {
+       "요금문의": 6
+      },
+      "unresolved": 1
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 3,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 723,
+     "days_to_promo_end": 10,
+     "months_since_start": 24,
+     "days_to_trial_end": -731,
+     "days_to_contract_year_end": 357,
+     "new_model_released_yn": "Y",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "Y",
+     "days_since_last_use": 66,
+     "days_since_last_care": 8,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 8,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 2,
+     "days_to_season_peak": 274,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "promo_end_date": "2026-10-10",
+     "months_since_start": 24,
+     "contract_year_end_date": "2027-09-21",
+     "monthly_fee": 45600,
+     "contract_months": 48,
+     "end_date": "2028-09-22",
+     "days_to_end": 723,
+     "care_renewal_date": "2027-09-22",
+     "days_since_last_use": 66,
+     "last_care_date": "2026-09-22",
+     "last_visit_date": "2026-09-22",
+     "remaining_care_cnt": 2,
+     "paid_total": 259500
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D02",
+   "scenario": "방문 일정 + 매니저 불만, 광고 미동의, 예정 방문 있음",
+   "expected": "정보성 알림톡이 한 통으로 합쳐지고 협업 부서 전달 초안 생성",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S025011",
+     "product_category": "냉장고",
+     "monthly_fee": 64500,
+     "contract_months": 60,
+     "start_date": "2022-10-30",
+     "end_date": "2027-10-30",
+     "days_to_end": 395,
+     "care_type": "방문관리",
+     "care_renewal_date": "2026-10-30",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C025011",
+     "customer_name": "한도윤",
+     "ad_consent_yn": "N"
+    },
+    "prediction": {
+     "churn_probability": 0.3413,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.09487
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T07",
+      "type_name": "매니저 품질 불만형",
+      "contribution_share": 0.5973,
+      "top_features": [
+       {
+        "feature": "voc_manager_change_cnt_180d",
+        "label": "최근 180일 담당자 변경 요청 횟수",
+        "value": 2,
+        "shap": 0.69
+       },
+       {
+        "feature": "manager_change_actual_cnt_365d",
+        "label": "최근 1년 실제 담당자 교체 횟수",
+        "value": 5,
+        "shap": 0.462
+       },
+       {
+        "feature": "attitude_complaint_cnt_90d",
+        "label": "최근 90일 태도 불만 접수 횟수",
+        "value": 3,
+        "shap": 0.248
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T06",
+      "type_name": "방문 일정 불편형",
+      "contribution_share": 0.4027,
+      "top_features": [
+       {
+        "feature": "schedule_change_req_cnt_365d",
+        "label": "최근 1년 고객 일정 변경 요청 횟수",
+        "value": 4,
+        "shap": 0.856
+       },
+       {
+        "feature": "reschedule_sum_365d",
+        "label": "최근 1년 방문 일정 재조정 횟수",
+        "value": 11,
+        "shap": 0.186
+       },
+       {
+        "feature": "booking_lead_days_avg",
+        "label": "평균 예약 대기일",
+        "value": 20.1,
+        "shap": 0.183
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 9,
+      "by_category": {
+       "태도불만": 3,
+       "담당자교체요청": 2,
+       "일정변경요청": 4
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 4,
+      "delays": 1,
+      "cancels": 3
+     }
+    },
+    "facts": {
+     "days_to_end": 395,
+     "days_to_promo_end": null,
+     "months_since_start": 47,
+     "days_to_trial_end": -1424,
+     "days_to_contract_year_end": 30,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 2,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "days_since_last_care": 101,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 101,
+     "has_upcoming_visit": "Y",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 9999,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 47,
+     "contract_year_end_date": "2026-10-29",
+     "monthly_fee": 64500,
+     "contract_months": 60,
+     "end_date": "2027-10-30",
+     "days_to_end": 395,
+     "care_renewal_date": "2026-10-30",
+     "days_since_last_use": 3,
+     "last_care_date": "2026-06-21",
+     "last_visit_date": "2026-06-21",
+     "next_visit_date": "2026-10-30",
+     "paid_total": 387000
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D03",
+   "scenario": "A/S 지연: 예상 수리 7일 이상",
+   "expected": "S-T10-D 대체품 안내 + 물류·A/S 부서 전달, 전담자 배정",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S011100",
+     "product_category": "에어컨",
+     "monthly_fee": 59500,
+     "contract_months": 60,
+     "start_date": "2021-11-17",
+     "end_date": "2026-11-17",
+     "days_to_end": 48,
+     "care_type": "자가관리",
+     "care_renewal_date": "2026-11-17",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C011100",
+     "customer_name": "안다은",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.1963,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.1398
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T10",
+      "type_name": "AS·고객센터 불만형",
+      "contribution_share": 0.8706,
+      "top_features": [
+       {
+        "feature": "response_hours_avg",
+        "label": "평균 최초 응답 시간(시간)",
+        "value": 11.4,
+        "shap": 0.744
+       },
+       {
+        "feature": "first_response_unresolved_yn",
+        "label": "1차 응대 미해결 여부",
+        "value": 1,
+        "shap": 0.54
+       },
+       {
+        "feature": "voc_complaint_cnt_90d",
+        "label": "최근 90일 불만 문의 횟수",
+        "value": 3,
+        "shap": 0.507
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 5,
+      "by_category": {
+       "응대불만": 3,
+       "기타": 2
+      },
+      "unresolved": 3
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 0,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 48,
+     "days_to_promo_end": null,
+     "months_since_start": 58,
+     "days_to_trial_end": -1771,
+     "days_to_contract_year_end": 48,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "Y",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 10,
+     "care_short_visit_cnt": 0,
+     "has_upcoming_visit": "Y",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 258,
+     "open_as_yn": "Y",
+     "same_symptom_cnt": 0,
+     "expected_as_days": 23,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 58,
+     "contract_year_end_date": "2026-11-16",
+     "monthly_fee": 59500,
+     "contract_months": 60,
+     "end_date": "2026-11-17",
+     "days_to_end": 48,
+     "care_renewal_date": "2026-11-17",
+     "days_since_last_use": 10,
+     "next_visit_date": "2026-10-03",
+     "expected_as_days": 23,
+     "paid_total": 357000
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D04",
+   "scenario": "담당 매니저 교체 확정",
+   "expected": "S-T07-D 인수인계 안내가 후보(같은 카테고리 상위안과 경쟁)",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S022581",
+     "product_category": "의류관리기",
+     "monthly_fee": 31600,
+     "contract_months": 60,
+     "start_date": "2024-06-29",
+     "end_date": "2029-06-29",
+     "days_to_end": 1003,
+     "care_type": "방문관리",
+     "care_renewal_date": "2027-06-29",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C022581",
+     "customer_name": "박아라",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.1898,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.1421
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T07",
+      "type_name": "매니저 품질 불만형",
+      "contribution_share": 0.9988,
+      "top_features": [
+       {
+        "feature": "voc_manager_change_cnt_180d",
+        "label": "최근 180일 담당자 변경 요청 횟수",
+        "value": 2,
+        "shap": 0.825
+       },
+       {
+        "feature": "attitude_complaint_cnt_90d",
+        "label": "최근 90일 태도 불만 접수 횟수",
+        "value": 3,
+        "shap": 0.721
+       },
+       {
+        "feature": "manager_change_actual_cnt_365d",
+        "label": "최근 1년 실제 담당자 교체 횟수",
+        "value": 2,
+        "shap": 0.247
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 5,
+      "by_category": {
+       "담당자교체요청": 2,
+       "태도불만": 3
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 3,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 1003,
+     "days_to_promo_end": null,
+     "months_since_start": 27,
+     "days_to_trial_end": -816,
+     "days_to_contract_year_end": 272,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 2,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "days_since_last_care": 93,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 93,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 9999,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "Y"
+    },
+    "message_facts": {
+     "months_since_start": 27,
+     "contract_year_end_date": "2027-06-28",
+     "monthly_fee": 31600,
+     "contract_months": 60,
+     "end_date": "2029-06-29",
+     "days_to_end": 1003,
+     "care_renewal_date": "2027-06-29",
+     "days_since_last_use": 3,
+     "last_care_date": "2026-06-29",
+     "last_visit_date": "2026-06-29",
+     "paid_total": 189600
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D05",
+   "scenario": "케어 중 점검 이상 소견",
+   "expected": "S-T09-C 선제 이상 리포트 + A/S 부서 전달",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S029856",
+     "product_category": "건조기",
+     "monthly_fee": 35900,
+     "contract_months": 72,
+     "start_date": "2023-09-29",
+     "end_date": "2029-09-29",
+     "days_to_end": 1095,
+     "care_type": "방문관리",
+     "care_renewal_date": "2027-09-29",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C029856",
+     "customer_name": "임준호",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.1686,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.14997
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T09",
+      "type_name": "제품 고장·성능 불만형",
+      "contribution_share": 1.0,
+      "top_features": [
+       {
+        "feature": "as_cnt_cum",
+        "label": "누적 A/S 접수 횟수",
+        "value": 4,
+        "shap": 0.712
+       },
+       {
+        "feature": "as_cnt_365d",
+        "label": "최근 1년 A/S 접수 횟수",
+        "value": 4,
+        "shap": 0.66
+       },
+       {
+        "feature": "as_rate_cum",
+        "label": "월평균 누적 A/S 접수 횟수",
+        "value": 0.111,
+        "shap": 0.149
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 0,
+      "by_category": {},
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 5,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 1095,
+     "days_to_promo_end": null,
+     "months_since_start": 36,
+     "days_to_trial_end": -1090,
+     "days_to_contract_year_end": 364,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "days_since_last_care": 1,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 1,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 274,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 4,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "Y",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 36,
+     "contract_year_end_date": "2027-09-28",
+     "monthly_fee": 35900,
+     "contract_months": 72,
+     "end_date": "2029-09-29",
+     "days_to_end": 1095,
+     "care_renewal_date": "2027-09-29",
+     "days_since_last_use": 3,
+     "last_care_date": "2026-09-29",
+     "last_visit_date": "2026-09-29",
+     "paid_total": 215400
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D06",
+   "scenario": "만료 30일 이내 재계약 갈등",
+   "expected": "재계약 안내(만료 임박, 갱신안내 열람)",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S016927",
+     "product_category": "건조기",
+     "monthly_fee": 38200,
+     "contract_months": 72,
+     "start_date": "2020-10-03",
+     "end_date": "2026-10-03",
+     "days_to_end": 3,
+     "care_type": "방문관리",
+     "care_renewal_date": "2026-10-03",
+     "promo_end_date": null,
+     "new_model_released_yn": "Y",
+     "model_discontinued_yn": "Y"
+    },
+    "customer": {
+     "customer_id": "C016927",
+     "customer_name": "강민재",
+     "ad_consent_yn": "N"
+    },
+    "prediction": {
+     "churn_probability": 0.4566,
+     "risk_level": "HIGH",
+     "risk_rank_pct": 0.0671
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T03",
+      "type_name": "재계약·갈아타기 갈등형",
+      "contribution_share": 1.0,
+      "top_features": [
+       {
+        "feature": "voc_renewal_cnt_90d",
+        "label": "최근 90일 갱신 문의 횟수",
+        "value": 3,
+        "shap": 1.414
+       },
+       {
+        "feature": "days_to_end",
+        "label": "계약 만료까지 남은 일수",
+        "value": 3,
+        "shap": 1.011
+       },
+       {
+        "feature": "renewal_notice_contact_cnt",
+        "label": "재계약 안내 접촉 횟수",
+        "value": 4,
+        "shap": 0.892
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 3,
+      "by_category": {
+       "갱신문의": 3
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 1,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 3,
+     "days_to_promo_end": null,
+     "months_since_start": 71,
+     "days_to_trial_end": -2181,
+     "days_to_contract_year_end": 3,
+     "new_model_released_yn": "Y",
+     "model_discontinued_yn": "Y",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "Y",
+     "days_since_last_use": 3,
+     "days_since_last_care": 362,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 362,
+     "has_upcoming_visit": "Y",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 274,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 71,
+     "contract_year_end_date": "2026-10-02",
+     "monthly_fee": 38200,
+     "contract_months": 72,
+     "end_date": "2026-10-03",
+     "days_to_end": 3,
+     "care_renewal_date": "2026-10-03",
+     "days_since_last_use": 3,
+     "last_care_date": "2025-10-03",
+     "last_visit_date": "2025-10-03",
+     "next_visit_date": "2026-10-03",
+     "paid_total": 229200
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D07",
+   "scenario": "해지·이사 장벽: 이사 문의",
+   "expected": "이사·해지 관련 안내, 위약금·이전 설치 정보",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S004628",
+     "product_category": "정수기",
+     "monthly_fee": 34200,
+     "contract_months": 48,
+     "start_date": "2023-03-25",
+     "end_date": "2027-03-25",
+     "days_to_end": 176,
+     "care_type": "방문관리",
+     "care_renewal_date": "2027-03-25",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C004628",
+     "customer_name": "류서준",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.2454,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.12157
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T02",
+      "type_name": "해지·이사 장벽형",
+      "contribution_share": 0.9747,
+      "top_features": [
+       {
+        "feature": "cancel_processing_delay_days",
+        "label": "해지 접수 처리 지연 일수",
+        "value": 8,
+        "shap": 1.577
+       },
+       {
+        "feature": "voc_penalty_cnt_90d",
+        "label": "최근 90일 위약금 문의 횟수",
+        "value": 4,
+        "shap": 0.308
+       },
+       {
+        "feature": "voc_cancel_cnt_90d",
+        "label": "최근 90일 해지 문의 횟수",
+        "value": 1,
+        "shap": 0.166
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 6,
+      "by_category": {
+       "이사문의": 1,
+       "위약금문의": 4,
+       "해지문의": 1
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 5,
+      "delays": 1,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 176,
+     "days_to_promo_end": null,
+     "months_since_start": 42,
+     "days_to_trial_end": -1278,
+     "days_to_contract_year_end": 176,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 1,
+     "move_signal_yn": "Y",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "days_since_last_care": 54,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 54,
+     "has_upcoming_visit": "Y",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 1,
+     "days_to_season_peak": 274,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 1,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 42,
+     "contract_year_end_date": "2027-03-24",
+     "monthly_fee": 34200,
+     "contract_months": 48,
+     "end_date": "2027-03-25",
+     "days_to_end": 176,
+     "care_renewal_date": "2027-03-25",
+     "days_since_last_use": 3,
+     "last_care_date": "2026-08-07",
+     "last_visit_date": "2026-08-07",
+     "next_visit_date": "2026-11-25",
+     "remaining_care_cnt": 1,
+     "paid_total": 205200
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D08",
+   "scenario": "영업 압박: 방문 중 영업 권유 반복",
+   "expected": "영업 압박 관련 안내가 없으면 만족도 조사로 대체(폴백 시연)",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S018432",
+     "product_category": "의류관리기",
+     "monthly_fee": 37100,
+     "contract_months": 60,
+     "start_date": "2022-07-21",
+     "end_date": "2027-07-21",
+     "days_to_end": 294,
+     "care_type": "방문관리",
+     "care_renewal_date": "2027-07-21",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "Y"
+    },
+    "customer": {
+     "customer_id": "C018432",
+     "customer_name": "류지민",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.0903,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.1773
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T08",
+      "type_name": "영업 압박형",
+      "contribution_share": 0.6715,
+      "top_features": [
+       {
+        "feature": "sales_pitch_cnt_180d",
+        "label": "최근 180일 방문 중 영업 권유 횟수",
+        "value": 4,
+        "shap": 0.608
+       },
+       {
+        "feature": "sales_voc_cnt_180d",
+        "label": "최근 180일 영업 불만 접수 횟수",
+        "value": 2,
+        "shap": 0.202
+       },
+       {
+        "feature": "repitch_after_refusal_cnt",
+        "label": "거절 후 재권유 횟수",
+        "value": 3,
+        "shap": 0.07
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 2,
+      "by_category": {
+       "영업불만": 2
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 4,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 294,
+     "days_to_promo_end": null,
+     "months_since_start": 50,
+     "days_to_trial_end": -1525,
+     "days_to_contract_year_end": 294,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "Y",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 1,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "days_since_last_care": 22,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 22,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 9999,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 50,
+     "contract_year_end_date": "2027-07-20",
+     "monthly_fee": 37100,
+     "contract_months": 60,
+     "end_date": "2027-07-21",
+     "days_to_end": 294,
+     "care_renewal_date": "2027-07-21",
+     "days_since_last_use": 3,
+     "last_care_date": "2026-09-08",
+     "last_visit_date": "2026-09-08",
+     "paid_total": 222600
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D09",
+   "scenario": "케어 부실: 케어 직후 A/S",
+   "expected": "S-T05-A 짧은 케어 후속 안내(최근 90일 내 20분 미만 케어 1회 이상)",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S029418",
+     "product_category": "냉장고",
+     "monthly_fee": 61700,
+     "contract_months": 60,
+     "start_date": "2024-07-19",
+     "end_date": "2029-07-19",
+     "days_to_end": 1023,
+     "care_type": "방문관리",
+     "care_renewal_date": "2027-07-19",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C029418",
+     "customer_name": "오채원",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.2343,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.12537
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T05",
+      "type_name": "케어 부실·피해형",
+      "contribution_share": 0.8709,
+      "top_features": [
+       {
+        "feature": "care_result_complaint_cnt_90d",
+        "label": "최근 90일 케어 결과 불만 접수 횟수",
+        "value": 3,
+        "shap": 0.823
+       },
+       {
+        "feature": "post_care_as_cnt_14d",
+        "label": "케어 후 14일 내 A/S 접수 횟수",
+        "value": 2,
+        "shap": 0.526
+       },
+       {
+        "feature": "post_care_revisit_req_cnt",
+        "label": "케어 후 재방문 요청 횟수",
+        "value": 3,
+        "shap": 0.356
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 6,
+      "by_category": {
+       "재방문요청": 3,
+       "케어결과불만": 3
+      },
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 5,
+      "delays": 0,
+      "cancels": 1
+     }
+    },
+    "facts": {
+     "days_to_end": 1023,
+     "days_to_promo_end": null,
+     "months_since_start": 26,
+     "days_to_trial_end": -796,
+     "days_to_contract_year_end": 292,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "days_since_last_care": 36,
+     "care_short_visit_cnt": 1,
+     "days_since_last_visit": 26,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 9999,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 2,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 26,
+     "contract_year_end_date": "2027-07-18",
+     "monthly_fee": 61700,
+     "contract_months": 60,
+     "end_date": "2029-07-19",
+     "days_to_end": 1023,
+     "care_renewal_date": "2027-07-19",
+     "days_since_last_use": 3,
+     "last_care_date": "2026-08-25",
+     "last_visit_date": "2026-09-04",
+     "paid_total": 370200
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D10",
+   "scenario": "사용 급감(T04 단독)",
+   "expected": "T04 단독, 최근 12주 중 8주 이상 무가동, 광고 동의(S-T04-A는 광고성 안내)",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S013371",
+     "product_category": "에어컨",
+     "monthly_fee": 76200,
+     "contract_months": 60,
+     "start_date": "2024-10-20",
+     "end_date": "2029-10-20",
+     "days_to_end": 1116,
+     "care_type": "자가관리",
+     "care_renewal_date": "2026-10-20",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C013371",
+     "customer_name": "윤수빈",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.0677,
+     "risk_level": "MID",
+     "risk_rank_pct": 0.185
+    },
+    "types": [
+     {
+      "type_rank": 1,
+      "type_id": "T04",
+      "type_name": "사용 빈도 저하·방치형",
+      "contribution_share": 0.5621,
+      "top_features": [
+       {
+        "feature": "zero_use_weeks_12w",
+        "label": "최근 12주 중 무가동 주 수",
+        "value": 10,
+        "shap": 0.763
+       },
+       {
+        "feature": "run_count_recent4w_vs_prev4w",
+        "label": "최근 4주 가동 횟수(직전 4주 대비 비율)",
+        "value": 0,
+        "shap": 0.062
+       },
+       {
+        "feature": "app_login_trend",
+        "label": "최근 12주 앱 접속 추세",
+        "value": 0.004,
+        "shap": 0.022
+       }
+      ]
+     },
+     {
+      "type_rank": 2,
+      "type_id": "T09",
+      "type_name": "제품 고장·성능 불만형",
+      "contribution_share": 0.4379,
+      "top_features": [
+       {
+        "feature": "as_cnt_cum",
+        "label": "누적 A/S 접수 횟수",
+        "value": 2,
+        "shap": 0.267
+       },
+       {
+        "feature": "as_cnt_365d",
+        "label": "최근 1년 A/S 접수 횟수",
+        "value": 2,
+        "shap": 0.258
+       },
+       {
+        "feature": "as_rate_cum",
+        "label": "월평균 누적 A/S 접수 횟수",
+        "value": 0.086,
+        "shap": 0.047
+       }
+      ]
+     }
+    ],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 0,
+      "by_category": {},
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 2,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 1116,
+     "days_to_promo_end": null,
+     "months_since_start": 23,
+     "days_to_trial_end": -703,
+     "days_to_contract_year_end": 20,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 45,
+     "care_short_visit_cnt": 0,
+     "days_since_last_visit": 126,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 258,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 2,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 23,
+     "contract_year_end_date": "2026-10-19",
+     "monthly_fee": 76200,
+     "contract_months": 60,
+     "end_date": "2029-10-20",
+     "days_to_end": 1116,
+     "care_renewal_date": "2026-10-20",
+     "days_since_last_use": 45,
+     "last_visit_date": "2026-05-27",
+     "paid_total": 457200
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D11",
+   "scenario": "유형 없음인데 이탈(라벨 노이즈)",
+   "expected": "모델이 '유형 없음'으로 판단 → 만족도 조사(S-NT-A)",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S015519",
+     "product_category": "의류관리기",
+     "monthly_fee": 36500,
+     "contract_months": 60,
+     "start_date": "2021-10-23",
+     "end_date": "2026-10-23",
+     "days_to_end": 23,
+     "care_type": "자가관리",
+     "care_renewal_date": "2026-10-23",
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N"
+    },
+    "customer": {
+     "customer_id": "C015519",
+     "customer_name": "권시우",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.0207,
+     "risk_level": "LOW",
+     "risk_rank_pct": 0.25783
+    },
+    "types": [],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 0,
+      "by_category": {},
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 0,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 23,
+     "days_to_promo_end": null,
+     "months_since_start": 59,
+     "days_to_trial_end": -1796,
+     "days_to_contract_year_end": 23,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "N",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "care_short_visit_cnt": 0,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 9999,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 59,
+     "contract_year_end_date": "2026-10-22",
+     "monthly_fee": 36500,
+     "contract_months": 60,
+     "end_date": "2026-10-23",
+     "days_to_end": 23,
+     "care_renewal_date": "2026-10-23",
+     "days_since_last_use": 3,
+     "paid_total": 219000
+    },
+    "recent_actions": []
+   }
+  },
+  {
+   "case_id": "D12",
+   "scenario": "정상·저위험",
+   "expected": "위험 낮음 → 조치 없음/설문 추천 범위 확인용",
+   "input": {
+    "as_of_date": "2026-09-30",
+    "subscription": {
+     "subscription_id": "S014751",
+     "product_category": "냉장고",
+     "monthly_fee": 55000,
+     "contract_months": 60,
+     "start_date": "2024-01-17",
+     "end_date": "2029-01-17",
+     "days_to_end": 840,
+     "care_type": "없음",
+     "care_renewal_date": null,
+     "promo_end_date": null,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "Y"
+    },
+    "customer": {
+     "customer_id": "C014751",
+     "customer_name": "윤지민",
+     "ad_consent_yn": "Y"
+    },
+    "prediction": {
+     "churn_probability": 0.0126,
+     "risk_level": "LOW",
+     "risk_rank_pct": 0.60513
+    },
+    "types": [],
+    "context": {
+     "voc_summary": {
+      "window_days": 90,
+      "total": 0,
+      "by_category": {},
+      "unresolved": 0
+     },
+     "visit_summary": {
+      "window_days": 365,
+      "visits": 0,
+      "delays": 0,
+      "cancels": 0
+     }
+    },
+    "facts": {
+     "days_to_end": 840,
+     "days_to_promo_end": null,
+     "months_since_start": 32,
+     "days_to_trial_end": -980,
+     "days_to_contract_year_end": 109,
+     "new_model_released_yn": "N",
+     "model_discontinued_yn": "Y",
+     "voc_fee_or_cancel_cnt_30d": 0,
+     "move_signal_yn": "N",
+     "attitude_complaint_cnt_30d": 0,
+     "sales_voc_cnt_30d": 0,
+     "setting_inquiry_yn": "N",
+     "first_response_unresolved_yn": "N",
+     "unapplied_discount_yn": "N",
+     "days_since_last_use": 3,
+     "care_short_visit_cnt": 0,
+     "has_upcoming_visit": "N",
+     "missed_or_late_visit_cnt_30d": 0,
+     "remaining_care_cnt": 0,
+     "days_to_season_peak": 9999,
+     "open_as_yn": "N",
+     "same_symptom_cnt": 0,
+     "expected_as_days": null,
+     "care_inspection_anomaly_yn": "N",
+     "manager_change_confirmed_yn": "N"
+    },
+    "message_facts": {
+     "months_since_start": 32,
+     "contract_year_end_date": "2027-01-16",
+     "monthly_fee": 55000,
+     "contract_months": 60,
+     "end_date": "2029-01-17",
+     "days_to_end": 840,
+     "days_since_last_use": 3,
+     "paid_total": 330000
+    },
+    "recent_actions": []
+   }
+  }
+ ]
+}

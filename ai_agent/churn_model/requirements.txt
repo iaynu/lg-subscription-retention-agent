@@ -1,0 +1,9 @@
+numpy
+pandas
+pyarrow
+pyyaml
+xgboost
+scikit-learn
+psycopg2-binary
+sqlalchemy>=2
+pytest

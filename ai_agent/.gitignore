@@ -1,0 +1,15 @@
+# 비밀값
+.env
+*.key
+
+# 생성 데이터·실행 결과 (시드 42로 다시 만들 수 있음; 리포트 .md만 남김)
+data_out/
+**/out/*
+!**/out/*.md
+*.parquet
+*.zip
+
+# 캐시
+__pycache__/
+.pytest_cache/
+*.pyc

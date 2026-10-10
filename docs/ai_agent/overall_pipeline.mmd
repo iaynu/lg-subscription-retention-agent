@@ -1,0 +1,70 @@
+flowchart TB
+    subgraph A["A. 데이터 준비 (1회성, 시드 고정)"]
+        A1["규칙 기반 더미 데이터 생성기<br/>유형별 신호 주입 + 자연 이탈 라벨"]
+        A2[("CSV / Parquet 정본")]
+        A3["적재 스크립트 (멱등)"]
+        A1 --> A2 --> A3
+    end
+
+    subgraph B["B. 데이터베이스 (PostgreSQL, 팀 공유)"]
+        B1[("마스터: product_profile, care_manager,<br/>churn_type, solution_catalog")]
+        B5[("피드백: survey_send, survey_response,<br/>survey_answer, ai_proposal")]
+        B2[("핵심: customer, subscription")]
+        B3[("이벤트: usage_thinq, care_visit,<br/>voc_contact, payment, notice_log")]
+        B4[("합성 정답: synth_churn_label,<br/>synth_truth_type (학습·추론 금지 영역 포함)")]
+    end
+
+    subgraph C["C. 모델링 배치 (오프라인)"]
+        C1["build_features(as_of)<br/>유형 그룹 68개 + 컨텍스트 5개 피처, 유형 그룹 태깅"]
+        C2["이진 분류 모델 학습<br/>입력: 피처 / 정답: synth_churn_label"]
+        C3["SHAP 계산 → 유형 그룹별 기여 비중<br/>양수 그룹 중 임계 이상 유형 최대 3개(없으면 유형 없음)"]
+        C4[("churn_prediction<br/>churn_prediction_type")]
+        C1 --> C2 --> C3 --> C4
+    end
+
+    subgraph D["D. 서비스 (온라인, 화면 + FastAPI)"]
+        D1["대시보드<br/>위험 등급 분포·유형 분포"]
+        D2["구독자 목록<br/>사전 계산 점수로 필터·정렬"]
+        D3["구독자 상세 선택"]
+        D4["Agent 호출 (선택 시에만, POST /agent/run)<br/>입력 조립: 예측 + 구독·이벤트에서 facts 계산"]
+        D5["Rule Engine v3<br/>자격 조건·광고 동의·쿨다운·비용 상한·동시 조치 수·구분 중복<br/>후보 0건이면 만족도 조사로 대체"]
+        D6["LLM (OpenAI)<br/>후보 안에서 선택 + 근거 + 알림톡 보고서 문구·부서 전달 초안"]
+        D7["검증기·폴백<br/>후보·숫자(단위)·금지 표현·스키마<br/>실패 시 재시도 1회 → 템플릿"]
+        D8["상담자 확정/반려 · 부서 전달<br/>(시뮬레이션)"]
+        D9[("agent_result<br/>action_log")]
+        D2 --> D3 --> D4 --> D5 --> D6 --> D7 --> D8 --> D9
+        D1 -.조회.-> C4
+        D2 -.조회.-> C4
+    end
+
+    A3 --> B1 & B2 & B3 & B4 & B5
+    B2 & B3 --> C1
+    B4 -- "라벨만" --> C2
+    B4 -. "검증 전용" .-> E1
+    C4 --> D4
+    B1 --> D5
+    D9 -- "쿨다운 판정" --> D5
+
+    subgraph F["F. 피드백 루프 (설문 → 신규 유형 후보 → 관리자 승인)"]
+        F1["설문 발송 (시뮬레이션)<br/>조치 후 · 이탈 후 · 유형 없음 · 후보 0건 · 설문 추천"]
+        F2["응답 합성·수집<br/>P_after로 이탈·응답 여부, 사유 코드 + 주관식"]
+        F3["기존 유형에 안 맞는 응답 군집화<br/>(LLM 주제 묶기)"]
+        F4[("ai_proposal<br/>검토중 / 채택 / 기각")]
+        F5["관리자 승인 화면"]
+        F6["채택 시 churn_type·solution_catalog<br/>신규 행 추가"]
+        F1 --> F2 --> F3 --> F4 --> F5 --> F6
+    end
+    D9 --> F1
+    C4 -- "유형 없음 + MID 이상" --> F1
+    F2 --> B5
+    F4 --> B5
+    F6 -. "카탈로그 확장" .-> B1
+
+    subgraph E["E. 검증"]
+        E1["유형 복원 검증<br/>SHAP 유형 vs synth_truth_type"]
+        E2["모델 지표<br/>PR-AUC·Recall/Precision@상위 N%·보정"]
+        E3["Agent 출력 검증<br/>규칙 위반율·근거 일치"]
+    end
+    C2 --> E2
+    C3 --> E1
+    D7 --> E3

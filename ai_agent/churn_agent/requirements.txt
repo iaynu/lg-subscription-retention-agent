@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic>=2
+pyyaml
+sqlalchemy>=2
+psycopg2-binary
+openai>=1.40
+httpx
+pytest
