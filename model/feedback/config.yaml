@@ -1,0 +1,126 @@
+# 설문 합성 설정 (설계: survey_simulator_design.md §3, §3.1~§3.4). 전부 [가정] 시작값 — 합성 분포를 보고 조정한다.
+seed_salt: "survey-v1"         # 구독 ID·설문 ID와 함께 난수 시드를 만든다. 바꾸면 합성 결과 전체가 바뀐다.
+
+# §3.1 설문 종류별 응답률(잔류/이탈 구분은 simulator가 적용). 값은 구간의 중앙.
+response_rate:
+  post_action: 0.175        # 조치완료 잔류 15~20%
+  post_churn: 0.30          # 조치 후 해지 접수 25~35%
+  no_type: 0.175
+  no_candidate: 0.175
+  survey_only: 0.175
+dropout_rate: 0.15          # 응답 시작자 중 중도 이탈
+item_skip_rate: 0.05        # 문항당 건너뜀(선택 문항)
+dk_rate: [0.05, 0.10]       # "잘 모르겠어요" 대체 비율 범위
+
+# §3.2 status 분포
+status_given_before_churn:
+  HIGH: {think: 0.80, sat: 0.20}
+  MID: {think: 0.60, sat: 0.40}
+  LOW: {think: 0.20, sat: 0.80}
+status_post_churn: {done: 0.50, ing: 0.50}
+
+# §3.3 issues
+issues_k: {1: 0.50, 2: 0.35, 3: 0.15}
+issues_none_rate_no_signal: 0.50          # 활성 유형도 숨은 주제도 없는 고객이 'none'을 고르는 비율
+issue_source: {own_type: 0.60, other_type: 0.10, hidden_topic: 0.20, other: 0.10}
+issue_source_hidden_boost: 0.40           # 숨은 주제 보유 시 hidden_topic 몫
+active_strength_min: 0.3                  # 활성 유형 기준(synth_truth_type.activation_strength)
+top_own_strongest: 0.70
+
+# §3.4 form
+form_given_events:
+  many: {repeat: 0.70, once: 0.20, fade: 0.10}     # 해당 이벤트 2건 이상
+  one: {once: 0.60, repeat: 0.25, fade: 0.15}
+  none: {fade: 0.70, once: 0.15, repeat: 0.15}     # 0건 또는 idle 계열
+
+# §3.5 심화 문항(deepA / deepB). 관측 데이터가 있으면 거기서 보기를 정하고, 없으면 기본 분포를 쓴다. 전부 [가정] 시작값.
+deep:
+  cost_a_dk: 0.10                        # cost A는 10%를 DK로 대체
+  cost_a_strength: {p31: 0.7, p30: 0.4}  # T01 강도 >= 0.7 -> p31, 0.4~0.7 -> p30, 그 외 p10
+  idle_daily_cap: 0.20                   # idle을 고른 응답자인데 daily로 나오는 비율 상한
+  exit_b_zero_if_think: 0.60             # 해지 전(think)이면 추가 비용 '0' 비중
+  penalty_zone_ratio: {1: 0.30, 2: 0.20, 3: 0.10}   # 예상 위약금 = 월 요금 x 잔여 개월 x 구간 비율
+  penalty_bucket_krw: [100000, 300000]   # 10만 미만 / 10~30만 / 30만 이상
+  manager_b_dk_if_missing: 0.10          # 담당자 교체 기록이 없을 때 DK
+  cs_slow_hours: 48                      # response_hours_avg 가 이 값 이상이면 '응대 느림'
+  cs_open_if_unresolved: 0.25            # 미해결 VOC가 있으면 '아직 해결 안 됨'
+  # fail A: symptom_code(SYM01~SYM12) -> noise / perf / broken (코드표 확정 필요)
+  symptom_groups: {noise: [SYM01, SYM02, SYM03, SYM04], perf: [SYM05, SYM06, SYM07, SYM08], broken: [SYM09, SYM10, SYM11, SYM12]}
+
+# §3.6~3.7 단계 F: 해지 고민·해결 경험. 전부 [가정] 시작값.
+stage_f:
+  hesitate:                       # 항목별 독립 선택 확률. none을 고르면 나머지는 비움, 아무것도 안 고르면 none
+    pen: {cond: 0.50, base: 0.10}      # cond: T02 활성이거나 해지 접수 시 penalty_zone 1~2년차
+    pick: {cond: 0.30, base: 0.05}     # cond: 대형가전
+    habit: {base: 0.25}
+    term: {cond: 0.40, base: 0.10}     # cond: days_to_end > 180
+    visit: {cond: 0.35, base: 0.05}    # cond: 방문형 케어
+    none: {base: 0.20}
+  action_secondary_share: 0.30         # 솔루션이 설문 보기 둘에 대응할 때 부(뒤) 보기로 기록할 비율
+  action_without_solution: {"no": 0.55, never: 0.45}   # YAML에서 no는 False로 읽히므로 따옴표 필수
+  helped_by_fit:                       # 적합도: exact(정확) / partial(부분) / mismatch(불일치)
+    exact: {solved: 0.50, part: 0.30, little: 0.15, worse: 0.05}
+    partial: {solved: 0.25, part: 0.35, little: 0.30, worse: 0.10}
+    mismatch: {solved: 0.08, part: 0.22, little: 0.50, worse: 0.20}
+  helped_post_churn_solved_factor: 0.5   # post_churn은 solved를 절반으로 줄이고 little·worse로 넘김
+  why_count: {1: 0.60, 2: 0.40}
+  why:                                 # 기본 가중 + 조건 가산 (가산은 조건이 맞을 때 더함)
+    late: {base: 0.15, add: 0.35}      # T06·T10 활성
+    mismatch: {base: 0.10, add_mismatch: 0.40, add_partial: 0.15}
+    again: {base: 0.05, add: 0.40}     # T09 활성
+    diff: {base: 0.05, add: 0.30}      # T07·T10 활성
+    unclear: {base: 0.05, add: 0.30}   # T02 활성 또는 H-A 보유
+    promise: {base: 0.10}
+    other: {base: 0.05}
+  wanted_main_share: 0.60              # issue_to_wanted 주 60% / 부 40%
+  wanted_replace_rate: 0.20            # 20%는 hard 또는 무작위 보기로 대체
+  wanted_replace_hard_share: 0.50      # 대체분 중 hard 비율 (나머지는 무작위 보기)
+  newsol_pick_rate: 0.60
+  newsol_none_rate: 0.15
+  newsol_other_given_other_issue: 0.40
+
+# §3.8~3.9 단계 G: 이용 방식·생활 환경·안내 방식·인터뷰·주관식. 전부 [가정] 시작값.
+stage_g:
+  motive: {cost: 0.20, care: 0.20, new: 0.10, promo: 0.20, move: 0.10, recom: 0.10, other: 0.05, default: 0.05}
+  motive_t04_boost: 1.5                    # T04 활성이면 care·new 가중
+  motive_hidden_a_default: 0.70            # H-A 보유 시 default 몫
+  motive_hidden_b_care: 0.60               # H-B 보유 시 care 몫
+  motive_hidden_both: {default: 0.40, care: 0.40}    # 둘 다 보유하면 나눔 [가정]
+  gap_default: {hidden_a: {below: 0.80, same: 0.15, over: 0.05}, other: {same: 0.50, below: 0.30, over: 0.20}}
+  gap_other: {hidden_b: {below: 0.70, same: 0.20, over: 0.10}, strong: {below: 0.55, same: 0.30, over: 0.15}, base: {same: 0.50, over: 0.25, below: 0.25}}
+  gap_strong_min: 0.6                      # 활성 유형 최대 강도 기준
+  firstact_channel: {phone: call, app: app, chatbot: app}
+  firstact_no_voc: {wait: 0.45, search: 0.25, self: 0.15, tech: 0.10, other: 0.05}
+  research:
+    penalty: {cond: 0.60, base: 0.05}      # T02 활성
+    compare: {cond: 0.60, base: 0.05}      # T01 활성
+    ask: {cond: 0.60, base: 0.05}          # VOC 있음
+    agency: {cond: 0.15, base: 0.0}        # T07·T10 강도 >= 0.7 이고 미해결
+    review: {base: 0.30}
+    none: {base: 0.25}
+  research_agency_min: 0.7
+  after_base: {buy: 0.25, sub: 0.20, keep: 0.10, used: 0.20, none: 0.10, unsure: 0.10, other: 0.05}
+  after_boost: {t04_none: 2.0, t01_sub_used: 1.5, t02_sub: 1.5, hb_keep_buy: 1.5}
+  after_think_unsure: 0.40                 # status=think이면 unsure 몫
+  hh: {solo: 0.35, couple: 0.20, baby: 0.15, kid: 0.20, other: 0.10}
+  daytime: {base: {most: 0.40, some: 0.40, rare: 0.20}, t06: {most: 0.20, some: 0.30, rare: 0.50}}
+  exp: {base: {first: 0.55, more: 0.30, past: 0.15}, long_tenure_months: 36, long_tenure_with_other_subs: {more: 0.70, first: 0.10, past: 0.20}}
+  who: {base: {self: 0.55, family: 0.20, famreq: 0.10, review: 0.10, agent: 0.05}, agent_inquiry: {agent: 0.50, self: 0.30, family: 0.10, famreq: 0.05, review: 0.05}}
+  channel:
+    weights: {talk: 0.65, sms: 0.45, push: 0.15, mail: 0.15, call: 0.20, none: 0.08}
+    count: {1: 0.40, 2: 0.40, 3: 0.20}     # 1~3개 선택 [가정]
+    senior_boost: 1.5                      # 고연령 속성 있으면 sms·call 가중
+  interview: {base: 0.15, intensity_scale: 0.5}   # 확률 = base x (intensity_scale + 최대 활성 강도)
+  open_write_rate: 0.55                    # 응답 완료자 중 주관식 작성
+  open_hidden_share: 0.50                  # 숨은 주제 보유 시 그 주제 문장을 쓸 확률
+
+# 숨은 주제 배정 (synth_truth_topic; 검증 전용, 모델·Agent 입력 금지). [가정]
+hidden_topics:
+  rate: {H-A: 0.05, H-B: 0.04}
+  concentrate_no_type_mid_plus: 3.0      # 유형 없음 + 위험 MID 이상 구독에 집중 배정(배율)
+  strength: [0.5, 1.0]
+
+# 설문 대상 선정 (설계서 §3.1) [가정]
+survey_plan:
+  survey_only_rank_range: [0.20, 0.30]   # LOW 중 risk_rank_pct 구간만 만족도 조사 자동 추천 (agent.config와 같은 값)
+  churn_label_column: churn_30d          # 1이면 조치 후에도 해지 접수한 구독으로 보고 post_churn

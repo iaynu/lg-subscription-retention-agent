@@ -1,0 +1,370 @@
+{
+ "_note": "피처 사전(data_schema_design.md §5 · agent_prompt_design.md §4.2). 유형 그룹 68개 + 컨텍스트 5개. label은 Agent 입력의 display_ko.",
+ "features": [
+  {
+   "group": "T01",
+   "feature": "voc_fee_cnt_90d",
+   "display_ko": "최근 90일 요금 문의 횟수"
+  },
+  {
+   "group": "T01",
+   "feature": "voc_totalcost_cnt_90d",
+   "display_ko": "최근 90일 총비용 문의 횟수"
+  },
+  {
+   "group": "T01",
+   "feature": "promo_days_to_end",
+   "display_ko": "프로모션 종료까지 남은 일수"
+  },
+  {
+   "group": "T01",
+   "feature": "billed_change_rate_3m",
+   "display_ko": "최근 3개월 청구액 변화율"
+  },
+  {
+   "group": "T01",
+   "feature": "late_payment_cnt_6m",
+   "display_ko": "최근 6개월 연체 횟수"
+  },
+  {
+   "group": "T01",
+   "feature": "discount_ratio",
+   "display_ko": "현재 할인율"
+  },
+  {
+   "group": "T01",
+   "feature": "unapplied_discount_yn",
+   "display_ko": "미적용 할인 해당 여부"
+  },
+  {
+   "group": "T02",
+   "feature": "voc_penalty_cnt_90d",
+   "display_ko": "최근 90일 위약금 문의 횟수"
+  },
+  {
+   "group": "T02",
+   "feature": "voc_cancel_cnt_90d",
+   "display_ko": "최근 90일 해지 문의 횟수"
+  },
+  {
+   "group": "T02",
+   "feature": "months_since_start",
+   "display_ko": "가입 후 경과 개월 수"
+  },
+  {
+   "group": "T02",
+   "feature": "penalty_zone",
+   "display_ko": "위약금 구간(가입 연차)"
+  },
+  {
+   "group": "T02",
+   "feature": "early_stage_penalty_voc_flag",
+   "display_ko": "가입 초기 위약금 문의 여부"
+  },
+  {
+   "group": "T02",
+   "feature": "voc_move_cnt_90d",
+   "display_ko": "최근 90일 이사 문의 횟수"
+  },
+  {
+   "group": "T02",
+   "feature": "relocation_install_requested_yn",
+   "display_ko": "이전 설치 요청 여부"
+  },
+  {
+   "group": "T02",
+   "feature": "relocation_install_delay_days",
+   "display_ko": "이전 설치 지연일"
+  },
+  {
+   "group": "T02",
+   "feature": "region_changed_flag",
+   "display_ko": "주소 변경 여부"
+  },
+  {
+   "group": "T02",
+   "feature": "cancel_processing_delay_days",
+   "display_ko": "해지 접수 처리 지연 일수"
+  },
+  {
+   "group": "T03",
+   "feature": "days_to_end",
+   "display_ko": "계약 만료까지 남은 일수"
+  },
+  {
+   "group": "T03",
+   "feature": "renewal_notice_sent_yn",
+   "display_ko": "갱신 안내 발송 여부"
+  },
+  {
+   "group": "T03",
+   "feature": "renewal_notice_opened_yn",
+   "display_ko": "갱신 안내 열람 여부"
+  },
+  {
+   "group": "T03",
+   "feature": "voc_renewal_cnt_90d",
+   "display_ko": "최근 90일 갱신 문의 횟수"
+  },
+  {
+   "group": "T03",
+   "feature": "model_discontinued_yn",
+   "display_ko": "단종 모델 여부"
+  },
+  {
+   "group": "T03",
+   "feature": "new_model_released_yn",
+   "display_ko": "신모델 출시 여부"
+  },
+  {
+   "group": "T03",
+   "feature": "renewal_notice_contact_cnt",
+   "display_ko": "재계약 안내 접촉 횟수"
+  },
+  {
+   "group": "T04",
+   "feature": "run_count_trend_12w",
+   "display_ko": "최근 12주 가동 횟수 추세"
+  },
+  {
+   "group": "T04",
+   "feature": "run_count_recent4w_vs_prev4w",
+   "display_ko": "최근 4주 가동 횟수(직전 4주 대비 비율)"
+  },
+  {
+   "group": "T04",
+   "feature": "run_minutes_trend",
+   "display_ko": "최근 12주 가동 시간 추세"
+  },
+  {
+   "group": "T04",
+   "feature": "app_login_trend",
+   "display_ko": "최근 12주 앱 접속 추세"
+  },
+  {
+   "group": "T04",
+   "feature": "zero_use_weeks_12w",
+   "display_ko": "최근 12주 중 무가동 주 수"
+  },
+  {
+   "group": "T05",
+   "feature": "care_duration_avg_min",
+   "display_ko": "케어 방문 평균 소요시간(분)"
+  },
+  {
+   "group": "T05",
+   "feature": "care_short_visit_cnt",
+   "display_ko": "기준보다 짧게 끝난 케어 방문 횟수"
+  },
+  {
+   "group": "T05",
+   "feature": "post_care_as_cnt_14d",
+   "display_ko": "케어 후 14일 내 A/S 접수 횟수"
+  },
+  {
+   "group": "T05",
+   "feature": "post_care_revisit_req_cnt",
+   "display_ko": "케어 후 재방문 요청 횟수"
+  },
+  {
+   "group": "T05",
+   "feature": "care_result_complaint_cnt_90d",
+   "display_ko": "최근 90일 케어 결과 불만 접수 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "visit_delay_cnt_365d",
+   "display_ko": "최근 1년 방문 지연 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "visit_cancel_cnt_365d",
+   "display_ko": "최근 1년 방문 취소 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "visit_noshow_cnt_365d",
+   "display_ko": "최근 1년 방문 미이행 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "reschedule_sum_365d",
+   "display_ko": "최근 1년 방문 일정 재조정 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "days_since_last_visit",
+   "display_ko": "마지막 방문 후 경과일"
+  },
+  {
+   "group": "T06",
+   "feature": "days_overdue_visit",
+   "display_ko": "방문 예정일 초과일"
+  },
+  {
+   "group": "T06",
+   "feature": "visit_gap_ratio",
+   "display_ko": "점검 주기 대비 경과 비율"
+  },
+  {
+   "group": "T06",
+   "feature": "visit_delay_rate_cum",
+   "display_ko": "월평균 누적 방문 지연 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "schedule_change_req_cnt_365d",
+   "display_ko": "최근 1년 고객 일정 변경 요청 횟수"
+  },
+  {
+   "group": "T06",
+   "feature": "booking_lead_days_avg",
+   "display_ko": "평균 예약 대기일"
+  },
+  {
+   "group": "T06",
+   "feature": "weekday_daytime_available_yn",
+   "display_ko": "평일 낮 방문 가능 여부"
+  },
+  {
+   "group": "T07",
+   "feature": "satisfaction_avg_180d",
+   "display_ko": "최근 180일 평균 방문 만족도"
+  },
+  {
+   "group": "T07",
+   "feature": "satisfaction_drop",
+   "display_ko": "방문 만족도 하락폭"
+  },
+  {
+   "group": "T07",
+   "feature": "voc_manager_change_cnt_180d",
+   "display_ko": "최근 180일 담당자 변경 요청 횟수"
+  },
+  {
+   "group": "T07",
+   "feature": "manager_change_actual_cnt_365d",
+   "display_ko": "최근 1년 실제 담당자 교체 횟수"
+  },
+  {
+   "group": "T07",
+   "feature": "manager_avg_rating",
+   "display_ko": "담당 매니저 평균 평점"
+  },
+  {
+   "group": "T07",
+   "feature": "attitude_complaint_cnt_90d",
+   "display_ko": "최근 90일 태도 불만 접수 횟수"
+  },
+  {
+   "group": "T08",
+   "feature": "sales_pitch_cnt_180d",
+   "display_ko": "최근 180일 방문 중 영업 권유 횟수"
+  },
+  {
+   "group": "T08",
+   "feature": "sales_voc_cnt_180d",
+   "display_ko": "최근 180일 영업 불만 접수 횟수"
+  },
+  {
+   "group": "T08",
+   "feature": "repitch_after_refusal_cnt",
+   "display_ko": "거절 후 재권유 횟수"
+  },
+  {
+   "group": "T09",
+   "feature": "as_cnt_365d",
+   "display_ko": "최근 1년 A/S 접수 횟수"
+  },
+  {
+   "group": "T09",
+   "feature": "repeat_symptom_cnt_90d",
+   "display_ko": "최근 90일 동일 증상 A/S 반복 횟수"
+  },
+  {
+   "group": "T09",
+   "feature": "as_cnt_trend",
+   "display_ko": "A/S 접수 증가 추세"
+  },
+  {
+   "group": "T09",
+   "feature": "as_cnt_cum",
+   "display_ko": "누적 A/S 접수 횟수"
+  },
+  {
+   "group": "T09",
+   "feature": "as_rate_cum",
+   "display_ko": "월평균 누적 A/S 접수 횟수"
+  },
+  {
+   "group": "T09",
+   "feature": "days_since_last_as",
+   "display_ko": "마지막 A/S 후 경과일"
+  },
+  {
+   "group": "T10",
+   "feature": "repair_days_avg_365d",
+   "display_ko": "최근 1년 평균 수리 소요일"
+  },
+  {
+   "group": "T10",
+   "feature": "parts_delay_cnt_365d",
+   "display_ko": "최근 1년 부품 수급 지연 횟수"
+  },
+  {
+   "group": "T10",
+   "feature": "unresolved_voc_cnt",
+   "display_ko": "미해결 문의 건수"
+  },
+  {
+   "group": "T10",
+   "feature": "repeat_voc_cnt",
+   "display_ko": "같은 건 재문의 횟수"
+  },
+  {
+   "group": "T10",
+   "feature": "response_hours_avg",
+   "display_ko": "평균 최초 응답 시간(시간)"
+  },
+  {
+   "group": "T10",
+   "feature": "voc_complaint_cnt_90d",
+   "display_ko": "최근 90일 불만 문의 횟수"
+  },
+  {
+   "group": "T10",
+   "feature": "split_as_receipt_yn",
+   "display_ko": "A/S 분리 접수 여부"
+  },
+  {
+   "group": "T10",
+   "feature": "first_response_unresolved_yn",
+   "display_ko": "1차 응대 미해결 여부"
+  },
+  {
+   "group": "컨텍스트",
+   "feature": "product_category",
+   "display_ko": "제품군"
+  },
+  {
+   "group": "컨텍스트",
+   "feature": "tenure_months",
+   "display_ko": "이용 개월 수"
+  },
+  {
+   "group": "컨텍스트",
+   "feature": "monthly_fee",
+   "display_ko": "월 요금"
+  },
+  {
+   "group": "컨텍스트",
+   "feature": "contract_months",
+   "display_ko": "계약 기간(개월)"
+  },
+  {
+   "group": "컨텍스트",
+   "feature": "care_type",
+   "display_ko": "케어 유형"
+  }
+ ]
+}
