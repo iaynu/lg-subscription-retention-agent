@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+psycopg[binary]
+pyyaml
+# only for scripts/make_candidates.py (new-type candidate generation)
+pandas
+numpy
+# only when generating candidates with a real LLM (the Agent itself uses urllib only)
+openai
+# tests: pip install pytest

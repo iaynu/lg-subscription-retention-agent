@@ -1,0 +1,5 @@
+.env
+churn.db
+__pycache__/
+*.pyc
+data_in/
