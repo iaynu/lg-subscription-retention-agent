@@ -5,6 +5,21 @@ LG전자 AX School AI 엔지니어 과정 Build2 (6인 팀, 2026.09.21 ~ 10.13).
 
 > **모든 데이터는 가설 기반 합성 데이터이고 발송은 시뮬레이션입니다.** 성능 수치는 "파이프라인이 설계한 구조를 되찾는다"는 검증이지 현실 성능이 아닙니다. 자세한 한계는 [docs/04_평가_및_한계.md](docs/04_평가_및_한계.md).
 
+## 화면
+
+> 아래 화면은 `front/`(Streamlit)를 실제로 실행해 캡처한 것입니다. 데이터는 모두 합성 데이터입니다.
+
+![전체 현황](docs/images/01-overview.png)
+
+| | |
+|---|---|
+| ![고객 케어](docs/images/02-customer-care.png) | ![AI 추천 솔루션](docs/images/03-agent-plan.png) |
+| **고객 케어** — 고객별 이탈 위험, 유형, 판단 근거(SHAP) | **AI 추천 솔루션** — Rule Engine 후보 안에서 조치와 문구 생성, 수정 후 승인/반려 |
+| ![제품 분석](docs/images/04-product.png) | ![팀 분석](docs/images/05-team.png) |
+| **제품 분석** — 6대 제품군 점유율·위험·VOC 키워드 | **팀 분석** — 부서별 인사이트와 AI 3줄 요약 |
+| ![설문 분석](docs/images/06-survey.png) | ![조치 이력](docs/images/08-action-log.png) |
+| **설문 분석** — 응답 현황, 불편했던 점, 원하는 조치 | **조치 이력** — 승인·반려·전달 기록 (발송은 시뮬레이션) |
+
 ## 배경과 목표
 
 | | |
@@ -57,6 +72,8 @@ LG전자 AX School AI 엔지니어 과정 Build2 (6인 팀, 2026.09.21 ~ 10.13).
 .
 ├── front/            Streamlit 화면. backend API 만 호출하고 DB 에는 붙지 않는다
 │   ├── app.py
+│   ├── assets/       제품 이미지
+│   ├── .streamlit/   다크 테마 설정(config.toml)
 │   └── requirements.txt
 ├── backend/          FastAPI + DB + Agent 연결
 │   ├── api/          main.py(라우트) · handlers.py(로직) · engine.py(model/ 연결 어댑터)
@@ -180,11 +197,13 @@ streamlit run app.py                    # http://localhost:8501
 
 | 탭 | 내용 | 주요 API |
 |---|---|---|
-| 개요 | 전체 구독·평균 이탈 확률·위험 분포, 제품군별/유형별 차트 | `/overview` |
-| 고객 케어 | 위험도·유형·검색 필터 → 고객 상세(예측, 유형별 근거, 최근 VOC) → **AI 조치안 생성 → 문구 수정 → 승인/반려**, 협업 부서 직접 전달 | `/subscriptions`, `/plan`, `/runs/{id}`, `/approve`, `/reject`, `/forward` |
-| 인사이트 | 신규 구독·해지 문의 추이, 제품군별 지표, Team Insight | `/insights` |
-| 설문 · 신규 유형 | 설문 집계, 신규 유형 후보 채택/기각/되돌리기, 솔루션 활성화 | `/survey/eda`, `/proposals`, `/solutions/{id}/activate` |
-| 조치 이력 | `action_log` 조회 | `/actions` |
+| 전체 현황 | 가입 연도별 1순위 이탈 유형 도넛 차트, 전체 구독·위험 분포 | `/insights`, `/overview` |
+| 고객 케어 | 위험도·검색 필터 고객 목록 → 페르소나·이탈 위험도·유형·판단 근거(SHAP) → **AI 추천 생성 → 문구 수정 → 승인/반려**, 협업 부서 직접 전달 | `/subscriptions`, `/plan`, `/runs/{id}`, `/approve`, `/reject`, `/forward` |
+| 제품 분석 | 6대 제품군 점유율·위험 분포·최근 3개월·주요 유형·VOC 키워드 | `/insights`, `/overview` |
+| 팀 분석 | CX혁신·구독운영·고객케어 부서별 추이, AI 3줄 요약, 심층 리포트 | `/insights` |
+| 설문 분석 | 발송·응답 현황, 불편했던 점, 원하는 조치, 새 솔루션 아이디어 | `/survey/eda` |
+| 신규 유형 | 설문에서 나온 신규 유형 후보 채택/기각/되돌리기, 솔루션 활성화 | `/proposals`, `/solutions/{id}/activate` |
+| 조치 이력 | `action_log` 조회 (알림톡 발송 · 부서 전달 · 반려 필터) | `/actions` |
 
 - 승인·반려는 **솔루션 항목별**로 보냅니다. 고객 문구와 협업 메모를 각각 고쳐도 서로 덮어쓰지 않습니다.
 - 서버에 OpenAI 키가 없으면 "LLM 으로 문구 작성" 토글이 꺼진 채 템플릿 문구를 씁니다.

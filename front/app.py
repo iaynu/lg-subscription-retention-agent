@@ -1,19 +1,81 @@
-"""LG 구독 이탈 방지 Agent — Streamlit 화면.
+"""LG Care Better — 구독 이탈 방어 AI Agent (Streamlit 화면).
 
 DB 에 직접 붙지 않고 FastAPI 서버(backend/)만 호출한다.
 실행 (backend 서버를 먼저 켠 뒤):  streamlit run app.py
-API 주소는 환경변수 API_URL 또는 사이드바에서 바꾼다(기본 http://127.0.0.1:8000).
+API 주소는 환경변수 API_URL 또는 왼쪽 위 사이드바에서 바꾼다(기본 http://127.0.0.1:8000).
 """
+import base64
+import html
 import os
+import re
+from pathlib import Path
 
 import pandas as pd
 import requests
 import streamlit as st
 
-st.set_page_config(page_title="LG 구독 이탈 방지 Agent", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="LG Care Better", page_icon="🛡️", layout="wide", initial_sidebar_state="collapsed")
 
+HERE = Path(__file__).resolve().parent
+GR = "linear-gradient(135deg,#8f3447,#d98a9a)"
+TYPE_COLORS = ["#b78476", "#8b3a45", "#b24f45", "#74465f", "#d0698a", "#8f3a00", "#946a4a", "#a05577", "#e8a080", "#e8aab8"]
 RISK_KO = {"HIGH": "높음", "MID": "중간", "LOW": "낮음"}
-RISK_ICON = {"HIGH": "🔴", "MID": "🟠", "LOW": "🟢"}
+PRODUCT_LABEL = {"의류관리기": "스타일러"}          # 화면 표기(데이터 값은 의류관리기)
+PRODUCT_IMG = {"의류관리기": "p-styler", "건조기": "p-dryer", "냉장고": "p-fridge", "세탁기": "p-washer",
+               "에어컨": "p-aircon", "정수기": "p-purifier"}
+DEPT_TABS = ["CX혁신부서", "구독운영부서", "고객케어부서"]
+
+CSS = """
+<style>
+.stApp{background:radial-gradient(900px 520px at 8% -8%,#4a1f2b99,transparent),radial-gradient(800px 500px at 100% 6%,#3a2a4a55,transparent),#0d0809;}
+header[data-testid="stHeader"],#MainMenu,footer{display:none!important}
+.block-container{max-width:1320px;padding-top:1.1rem;padding-bottom:4rem}
+h1,h2,h3{letter-spacing:-.01em}
+/* 상단 브랜드 바 */
+.brand{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 10px}
+.brand .l{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#8f3447,#d98a9a);display:grid;place-items:center;font-weight:800;color:#fff}
+.brand b{font-size:17px}.brand small{display:block;color:rgba(246,238,240,.6);font-size:12px;margin-top:-2px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(217,138,154,.2);font-size:12px;color:rgba(246,238,240,.8)}
+.dot{width:8px;height:8px;border-radius:50%;background:#34d399;display:inline-block}
+/* 탭 = 상단 내비게이션 */
+div[data-baseweb="tab-list"]{gap:6px;border-bottom:1px solid rgba(217,138,154,.18)}
+button[data-baseweb="tab"]{font-weight:700;color:rgba(246,238,240,.6);padding:12px 18px}
+button[data-baseweb="tab"][aria-selected="true"]{color:#fff}
+div[data-baseweb="tab-highlight"]{background:#f4a9ba!important;height:3px}
+/* 카드 */
+div[data-testid="stVerticalBlockBorderWrapper"]{background:linear-gradient(145deg,rgba(255,235,240,.07),rgba(255,235,240,.02));border:1px solid rgba(217,138,154,.2)!important;border-radius:22px!important}
+.eyebrow{color:#f4a9ba;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:14px 0 2px}
+.title{font-size:36px;font-weight:800;line-height:1.2;margin:0}
+.title.c{text-align:center;font-size:38px}.eyebrow.c{text-align:center}
+.sub{color:rgba(246,238,240,.64);font-size:14px;margin:6px 0 14px}
+.chip{display:inline-block;padding:6px 14px;border-radius:999px;background:linear-gradient(135deg,#8f3447,#b8697a);color:#fff;font-size:12px;font-weight:700;margin:0 6px 6px 0}
+.chip.o{background:rgba(255,255,255,.06);border:1px solid rgba(217,138,154,.25);color:#f6eef0}
+.kv{background:rgba(0,0,0,.28);border-radius:14px;padding:10px 14px}
+.kv small{display:block;color:rgba(246,238,240,.6);font-size:11px}.kv b{font-size:15px}
+.track{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8f3447,#d98a9a)}
+.brow{margin:9px 0}.brow .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.brow .t span:last-child{font-weight:700}
+.big{font-size:44px;font-weight:800;color:#f4a9ba;line-height:1}
+.avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#8f3447,#b8697a);display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff}
+.persona{padding:6px 4px}.persona q{display:block;font-size:26px;font-weight:800;line-height:1.35;margin:10px 0 8px;quotes:"“" "”"}
+.insights{background:linear-gradient(135deg,#8f3447cc,#b8697acc);border-radius:22px;padding:22px 26px;margin-top:14px}
+.insights .e{font-size:12px;font-weight:700;letter-spacing:.12em;margin-bottom:8px}
+.insights .r{display:flex;gap:18px;align-items:baseline;padding:12px 0;border-top:1px solid rgba(255,255,255,.25);font-size:16px;font-weight:600}
+.insights .r:first-of-type{border-top:0}.insights .n{font-size:20px;font-weight:800}
+.legend .it{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:10px;font-size:14px}
+.legend .it i{width:12px;height:12px;border-radius:4px;display:inline-block}.legend .it span.v{margin-left:auto;color:rgba(246,238,240,.7)}
+.share{display:flex;height:16px;border-radius:99px;overflow:hidden;margin:10px 0}
+.pimg{width:76px;height:76px;border-radius:18px;object-fit:cover;background:#f3e8d6}
+.kw{display:inline-block;margin:3px 8px;font-weight:700;color:#f4a9ba}
+table.log{width:100%;border-collapse:collapse;font-size:13px}table.log th{color:rgba(246,238,240,.55);text-align:left;font-weight:600;padding:8px 10px}
+table.log td{padding:11px 10px;border-top:1px solid rgba(217,138,154,.16)}.ok{color:#34d399;font-weight:700}.ng{color:#e06a6a;font-weight:700}
+.hl{background:rgba(217,138,154,.14);border-radius:12px}
+/* 버튼 */
+button[kind="primary"]{background:linear-gradient(135deg,#8f3447,#b8697a)!important;border:0!important;color:#fff!important;font-weight:700}
+</style>
+"""
+st.markdown(CSS, unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------ API
@@ -21,7 +83,7 @@ with st.sidebar:
     st.header("설정")
     API = st.text_input("API 주소", os.environ.get("API_URL", "http://127.0.0.1:8000")).rstrip("/")
     reviewer = st.text_input("검토자 이름", "관리자")
-    st.caption("Agent 는 제안만 하고, 승인·반려는 사람이 합니다. 발송은 시뮬레이션이라 action_log 에만 기록돼요.")
+    st.caption("Agent 는 제안만 하고 승인·반려는 사람이 합니다. 발송은 시뮬레이션이라 action_log 에만 기록돼요.")
 
 
 def call(method, path, timeout=60, quiet=False, **kw):
@@ -57,6 +119,12 @@ def get(path):
     return cached_get(API, path)
 
 
+@st.cache_data(show_spinner=False)
+def img_uri(name):
+    p = HERE / "assets" / f"{name}.png"
+    return "data:image/png;base64," + base64.b64encode(p.read_bytes()).decode() if p.exists() else ""
+
+
 def won(v):
     return "-" if v is None else f"{int(round(float(v))):,}원"
 
@@ -65,148 +133,149 @@ def pct(v, digits=1):
     return "-" if v is None else f"{float(v) * 100:.{digits}f}%"
 
 
+def esc(v):
+    return html.escape(str(v if v is not None else ""))
+
+
+def md_bold(s):
+    """'**강조**' 를 <b> 로(나머지는 이스케이프)."""
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc(s))
+
+
+def head(eyebrow, title, sub="", center=False):
+    c = " c" if center else ""
+    st.markdown(f'<div class="eyebrow{c}">{esc(eyebrow)}</div><div class="title{c}">{esc(title)}</div>'
+                + (f'<div class="sub{c}">{esc(sub)}</div>' if sub else ""), unsafe_allow_html=True)
+
+
+def bar_rows(items, color_fn=None):
+    """items: [(라벨, 값 문자열, 0~1 비율)] → 막대 목록 HTML"""
+    out = []
+    for label, val, ratio in items:
+        out.append(f'<div class="brow"><div class="t"><span>{esc(label)}</span><span>{esc(val)}</span></div>'
+                   f'<div class="track"><div class="fill" style="width:{max(2, min(100, ratio * 100)):.0f}%"></div></div></div>')
+    return "".join(out)
+
+
 def type_label(type_id, names):
     return f"{type_id} {names.get(type_id, '')}".strip() if type_id else "-"
 
 
 # ------------------------------------------------------------------ 헤더
 health = get("/health")
-st.title("🛡️ LG 구독 이탈 방지 Agent")
 if health is None:
     st.error(f"API 서버({API})에 연결할 수 없어요. backend 에서 `uvicorn api.main:app --port 8000` 을 먼저 실행하세요.")
     st.stop()
 llm_on = health.get("llm") == "openai"
-st.caption(f"API 연결됨 · DB {health['db']} · 구독 {health['subscriptions']:,}건 · "
-           f"문구 생성 {'OpenAI ' + str(health.get('model')) if llm_on else '템플릿(LLM 키 없음 또는 꺼짐)'}")
+ins = get("/insights") or {}
+st.markdown(
+    f'<div class="brand"><div class="l"><div class="logo">C</div><div><b>LG Care Better</b>'
+    f'<small>구독 이탈 방어 AI Agent</small></div></div>'
+    f'<span class="pill"><span class="dot"></span>API 연결됨 · 기준일 {esc(ins.get("as_of", "-"))} · '
+    f'{esc(health["db"])} · 문구 {"AI" if llm_on else "템플릿"}</span></div>', unsafe_allow_html=True)
 
 catalog = get("/catalog") or {"types": [], "solutions": []}
 TYPE_NAMES = {t["type_id"]: t["type_name"] for t in catalog["types"]}
+TYPE_ORDER = [t["type_id"] for t in catalog["types"]][:10] or [f"T{i:02d}" for i in range(1, 11)]
 DEPTS = get("/departments") or []
 DEPT_NAMES = [d["name"] for d in DEPTS]
 
-tab_ov, tab_care, tab_ins, tab_survey, tab_log = st.tabs(
-    ["📊 개요", "👤 고객 케어", "📈 인사이트", "📝 설문 · 신규 유형", "🗂 조치 이력"])
+tabs = st.tabs(["전체 현황", "고객 케어", "제품 분석", "팀 분석", "설문 분석", "신규 유형", "조치 이력"])
+tab_ov, tab_care, tab_prod, tab_team, tab_survey, tab_new, tab_log = tabs
 
 
-# ================================================================== 개요
+# ================================================================== 전체 현황
+def donut_svg(counts, labels, size=460):
+    total = sum(counts) or 1
+    r, w, cx = size / 2 - 30, 58, size / 2
+    circ = 2 * 3.14159265 * r
+    segs, off = [], 0.0
+    for i in sorted(range(len(counts)), key=lambda i: -counts[i]):
+        ln = counts[i] / total * circ
+        segs.append(f'<circle cx="{cx}" cy="{cx}" r="{r}" fill="none" stroke="{TYPE_COLORS[i % 10]}" stroke-width="{w}" '
+                    f'stroke-dasharray="{max(ln - 3, 0):.1f} {circ - max(ln - 3, 0):.1f}" stroke-dashoffset="{-off:.1f}" '
+                    f'transform="rotate(-90 {cx} {cx})"><title>{esc(labels[i])} {counts[i]:,}명</title></circle>')
+        off += ln
+    top = max(range(len(counts)), key=lambda i: counts[i])
+    center = (f'<text x="{cx}" y="{cx - 46}" text-anchor="middle" fill="#f4a9ba" font-size="13">고위험 고객 분포</text>'
+              f'<text x="{cx}" y="{cx - 12}" text-anchor="middle" fill="#fff" font-size="24" font-weight="800">{esc(labels[top])}</text>'
+              f'<text x="{cx}" y="{cx + 36}" text-anchor="middle" fill="#fff" font-size="44" font-weight="800">{counts[top]:,}'
+              f'<tspan font-size="16"> 명</tspan></text>'
+              f'<text x="{cx}" y="{cx + 62}" text-anchor="middle" fill="#bda8ad" font-size="13">가장 큰 유형 · {counts[top] / total * 100:.1f}%</text>')
+    return f'<svg viewBox="0 0 {size} {size}" width="100%" style="max-width:{size}px">{"".join(segs)}{center}</svg>'
+
+
 with tab_ov:
+    head("더 나은 LG 베스트 케어, LG Care Better", "어떤 고객이, 어떤 이유로 떠날까", center=True)
+    yt = ins.get("ytypes") or {}
+    if yt:
+        year = st.segmented_control("가입 연도", ["전체"] + sorted(yt), default="전체", label_visibility="collapsed")
+        counts = [sum(v[i] for v in yt.values()) for i in range(10)] if year in (None, "전체") else yt[year]
+        names = [TYPE_NAMES.get(t, t) for t in TYPE_ORDER] + [""] * 10
+        total = sum(counts) or 1
+        left, right = st.columns([3, 2], vertical_alignment="center")
+        left.markdown(donut_svg(counts, names), unsafe_allow_html=True)
+        legend = "".join(
+            f'<div class="it"><i style="background:{TYPE_COLORS[i % 10]}"></i>{esc(names[i])}'
+            f'<span class="v">{counts[i]:,}명 · {counts[i] / total * 100:.1f}%</span></div>'
+            for i in sorted(range(10), key=lambda i: -counts[i]))
+        right.markdown(f'<div class="legend">{legend}</div>', unsafe_allow_html=True)
+        st.caption("고·중위험 고객의 1순위 이탈 유형 분포 · 도넛 위에 마우스를 올리면 유형별 인원을 볼 수 있어요.")
     ov = get("/overview")
     if ov:
-        risk = ov["risk"]
         c = st.columns(5)
-        c[0].metric("전체 구독", f"{ov['total']:,}")
-        c[1].metric("평균 이탈 확률", pct(ov["avg_prob"]))
-        c[2].metric("🔴 높음", f"{risk.get('HIGH', 0):,}")
-        c[3].metric("🟠 중간", f"{risk.get('MID', 0):,}")
-        c[4].metric("🟢 낮음", f"{risk.get('LOW', 0):,}")
-
-        left, right = st.columns(2)
-        with left:
-            st.subheader("제품군별 위험 고객")
-            dfp = pd.DataFrame(ov["products"]).set_index("name")[["high", "mid"]]
-            dfp.columns = ["높음", "중간"]
-            st.bar_chart(dfp)
-        with right:
-            st.subheader("1순위 이탈 유형 분포")
-            dft = pd.DataFrame(ov["types"])
-            dft["유형"] = dft["type_id"].map(lambda t: type_label(t, TYPE_NAMES))
-            st.bar_chart(dft.set_index("유형")["n"], horizontal=True)
+        for col, (k, v) in zip(c, [("전체 구독", f"{ov['total']:,}"), ("평균 이탈 확률", pct(ov["avg_prob"])),
+                                   ("🔴 높음", f"{ov['risk'].get('HIGH', 0):,}"), ("🟠 중간", f"{ov['risk'].get('MID', 0):,}"),
+                                   ("🟢 낮음", f"{ov['risk'].get('LOW', 0):,}")]):
+            col.markdown(f'<div class="kv"><small>{k}</small><b style="font-size:24px">{v}</b></div>', unsafe_allow_html=True)
         st.caption("※ 모든 데이터는 합성 데이터이며, 이탈 확률·유형은 모델 예측 결과입니다.")
 
 
 # ================================================================== 고객 케어
-def render_customer(sub_id):
-    d = call("GET", f"/subscriptions/{sub_id}")
-    if not d:
-        return None
-    sb, cu, pr = d["subscription"], d["customer"], d["prediction"]
-    st.subheader(f"{cu.get('customer_name', '')} · {sb['subscription_id']}")
-    m = st.columns(4)
-    m[0].metric("이탈 확률", pct(pr["churn_probability"]))
-    m[1].metric("위험도", f"{RISK_ICON.get(pr['risk_level'], '')} {RISK_KO.get(pr['risk_level'], pr['risk_level'])}")
-    m[2].metric("월 요금", won(sb["monthly_fee"]))
-    m[3].metric("약정 종료까지", f"{d['features'].get('days_to_end', '-')}일")
-    st.caption(f"{sb['product_category']} {sb['model_name']} · 케어 {sb['care_type']} · 약정 {sb['contract_months']}개월 "
-               f"({sb['start_date']} ~ {sb['end_date']}) · 기준일 {d['today']}")
-
-    a, b = st.columns(2)
-    with a:
-        st.markdown("**이탈 유형 (기여도 순)**")
-        for t in d["types"]:
-            feats = ", ".join(f"{f.get('label') or f['feature']}={f.get('value')}" for f in (t.get("top_features") or [])[:3])
-            st.write(f"{t['type_rank']}. **{type_label(t['type_id'], TYPE_NAMES)}** — {pct(t['contribution_share'], 0)}")
-            if feats:
-                st.caption(f"근거: {feats}")
-    with b:
-        st.markdown("**최근 VOC**")
-        if d["recent_voc"]:
-            st.dataframe(pd.DataFrame(d["recent_voc"]).rename(
-                columns={"contact_date": "접수일", "category": "분류", "summary_text": "요약"}),
-                hide_index=True, width="stretch")
-        else:
-            st.caption("최근 VOC 없음")
-    with st.expander("계산된 특징(features) · 조치 이력"):
-        st.json(d["features"], expanded=False)
-        if d["actions"]:
-            st.dataframe(pd.DataFrame(d["actions"])[["action_id", "created_at", "solution_id", "target", "status", "message_text"]],
-                         hide_index=True, width="stretch")
-    return d
-
-
-def render_plan(res):
-    """조치안 + 승인/반려 UI."""
+def render_plan(res, d):
+    """AI 추천 솔루션 패널: 조치안 + 승인/반려."""
     run_id = res["run_id"]
     plan, meta = res["plan"], res["meta"]
-    st.divider()
-    st.subheader(f"🤖 Agent 조치안 (run #{run_id})")
-    src = f"LLM {meta['model']}" if meta["llm_used"] == "Y" else "템플릿 문구"
-    st.caption(f"{src} · 모드 {meta['mode']} · 결과 {meta['outcome']}"
-               + (f" · {meta['fallback_reason']}" if meta.get("fallback_reason") else ""))
     lim = plan.get("limits") or {}
-    st.write(plan.get("summary") or "")
-    if lim:
-        st.caption(f"조치 최대 {lim.get('max_actions')}개 · 비용 한도 {won(lim.get('cost_limit'))} · "
-                   f"90일 누적 {won(lim.get('spent_90d'))} · 이번 제안 합계 {won(plan.get('total_cost'))}")
-
-    done = {(a["solution_id"]) for a in res.get("logged_actions", []) if a["status"] != "반려"}
+    src = f"AI {meta['model']}" if meta["llm_used"] == "Y" else "기본 문구(템플릿)"
+    st.caption(f"run #{run_id} · {src} · 모드 {meta['mode']} · 결과 {meta['outcome']}"
+               + (f" · {meta['fallback_reason']}" if meta.get("fallback_reason") else ""))
+    st.markdown(f'<div class="sub">{esc(plan.get("summary"))} · 합계 {won(plan.get("total_cost"))} / 상한 {won(lim.get("cost_limit"))} · '
+                f'최대 {lim.get("max_actions")}개 · 90일 누적 {won(lim.get("spent_90d"))}</div>', unsafe_allow_html=True)
+    done = {a["solution_id"] for a in res.get("logged_actions", []) if a["status"] != "반려"}
     if not plan["actions"]:
         st.info("조건을 만족하는 조치가 없어요. 아래 '규칙 판단 근거'에서 이유를 확인하세요.")
-
     for act in plan["actions"]:
         sid = act["solution_id"]
         key = f"{run_id}_{sid}"
         with st.container(border=True):
             st.markdown(f"**{act['solution_name']}** `{sid}` · {type_label(act['type_id'], TYPE_NAMES)} · "
-                        f"대상 **{act['target']}** · 비용 {won(act['offer_cost'])}"
-                        + (" · 📣 광고성" if act["message_kind"] == "ad" else ""))
+                        f"대상 **{act['target']}** · 비용 {won(act['offer_cost'])}" + (" · 📣 광고성" if act["message_kind"] == "ad" else ""))
             st.caption(f"선정 이유: {act['why']}")
             cust, memo, depts = act.get("customer_message"), act.get("internal_note"), []
             if cust is not None:
-                cust_edit = st.text_area("고객 발송 문구 (수정 가능)", cust, key=f"c_{key}", height=140)
+                cust_edit = st.text_area("고객 알림톡 문구 (수정 가능)", cust, key=f"c_{key}", height=140)
                 if act.get("buttons"):
                     st.caption("버튼: " + " · ".join(act["buttons"]))
             if memo is not None:
                 memo_edit = st.text_area("협업 전달 메모 (수정 가능)", memo, key=f"m_{key}", height=100)
-                defaults = [d for d in (res.get("forward") or {}).get("depts", []) if d in DEPT_NAMES] \
-                    if isinstance(res.get("forward"), dict) else []
+                fwd = res.get("forward")
+                defaults = [x for x in (fwd.get("depts", []) if isinstance(fwd, dict) else []) if x in DEPT_NAMES]
                 depts = st.multiselect("전달 부서", DEPT_NAMES, default=defaults, key=f"d_{key}")
             note = st.text_input("결정 메모 (선택)", key=f"n_{key}")
-
             b1, b2, b3 = st.columns([1, 1, 2])
             if sid in done:
                 b1.success("기록됨")
             elif b1.button("✅ 승인", key=f"ok_{key}", type="primary"):
                 msgs = []
                 if cust is not None:
-                    r = call("POST", f"/runs/{run_id}/approve", json={
+                    msgs.append(call("POST", f"/runs/{run_id}/approve", json={
                         "solution_ids": [sid], "part": "customer", "message_text": cust_edit,
-                        "decision_note": note or None, "edited": cust_edit != cust})
-                    msgs.append(r)
+                        "decision_note": note or None, "edited": cust_edit != cust}))
                 if memo is not None:
-                    r = call("POST", f"/runs/{run_id}/approve", json={
+                    msgs.append(call("POST", f"/runs/{run_id}/approve", json={
                         "solution_ids": [sid], "part": "internal", "internal_memo": memo_edit,
-                        "forward_depts": depts, "decision_note": note or None, "edited": memo_edit != memo})
-                    msgs.append(r)
+                        "forward_depts": depts, "decision_note": note or None, "edited": memo_edit != memo}))
                 if msgs and all(msgs):
                     st.session_state["flash"] = ("success" if any(m["logged_action_ids"] for m in msgs) else "warning",
                                                  " / ".join(m["note"] for m in msgs))
@@ -220,17 +289,14 @@ def render_plan(res):
                     if r:
                         st.session_state["flash"] = ("info", r["note"])
                         st.rerun()
-
     with st.expander("규칙 판단 근거 (후보 · 제외 사유)"):
         rt = res["rule_trace"]
         st.write(f"모드 **{rt['mode']}** · 사용한 유형 {', '.join(rt['types_used'])}"
                  + (f" · {rt['gate_reason']}" if rt.get("gate_reason") else ""))
         if rt["eligible"]:
-            st.markdown("**후보**")
             st.dataframe(pd.DataFrame(rt["eligible"])[["solution_id", "solution_name", "priority", "target", "offer_cost", "why"]],
                          hide_index=True, width="stretch")
         if rt["excluded"]:
-            st.markdown("**제외**")
             st.dataframe(pd.DataFrame(rt["excluded"]), hide_index=True, width="stretch")
     if res.get("messages"):
         with st.expander("고객에게 가는 알림톡 (합본 미리보기)"):
@@ -239,186 +305,257 @@ def render_plan(res):
                 st.text(m["message_text"])
 
 
+def render_customer(sub_id):
+    d = call("GET", f"/subscriptions/{sub_id}")
+    if not d:
+        return
+    sb, cu, pr, ft = d["subscription"], d["customer"], d["prediction"], d["features"]
+    types = d["types"]
+    voc = d["recent_voc"]
+    quote = voc[0]["summary_text"] if voc else "최근 접수된 문의가 없어요."
+    top_name = type_label(types[0]["type_id"], TYPE_NAMES) if types else "유형 없음"
+    with st.container(border=True):
+        st.markdown(f'<div class="persona"><span class="eyebrow" style="margin:0">PERSONA</span> '
+                    f'<span class="chip o">{esc(top_name)}</span><q>{esc(quote)}</q>'
+                    f'<span class="sub">{esc(cu.get("customer_name"))} · {esc(sb["subscription_id"])} · 최근 VOC 기준</span></div>',
+                    unsafe_allow_html=True)
+    with st.container(border=True):
+        name = cu.get("customer_name") or "?"
+        st.markdown(
+            f'<div style="display:flex;gap:16px;align-items:center"><div class="avatar">{esc(name[0])}</div>'
+            f'<div style="flex:1"><div style="font-size:24px;font-weight:800">{esc(name)}</div>'
+            f'<div class="sub" style="margin:0">{esc(sb["subscription_id"])} · {esc(cu.get("age_group"))} · {esc(cu.get("region_sido"))}</div></div>'
+            f'<div style="text-align:right"><small style="color:rgba(246,238,240,.6)">30일 내 이탈 위험도</small>'
+            f'<div class="big">{round(pr["churn_probability"] * 100)}%</div></div></div>'
+            f'<div class="track" style="margin:14px 0"><div class="fill" style="width:{pr["churn_probability"] * 100:.0f}%"></div></div>'
+            f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">'
+            f'<div class="kv"><small>가입 상품</small><b>{esc(sb["product_category"])} {esc(sb["model_name"])}</b></div>'
+            f'<div class="kv"><small>월 요금</small><b>{won(sb["monthly_fee"])}</b></div>'
+            f'<div class="kv"><small>잔여 약정</small><b>{esc(ft.get("days_to_end", "-"))}일</b></div>'
+            f'<div class="kv"><small>케어 유형</small><b>{esc(sb["care_type"])}</b></div>'
+            f'<div class="kv"><small>알림·광고 동의</small><b>{esc(cu.get("notify_consent_yn"))} · {esc(cu.get("ad_consent_yn"))}</b></div></div>'
+            f'<div style="margin-top:12px">' + "".join(
+                f'<span class="chip">유형 {esc(t["type_id"][1:])} · {esc(TYPE_NAMES.get(t["type_id"], ""))} · {round(t["contribution_share"] * 100)}%</span>'
+                for t in types) + '</div>', unsafe_allow_html=True)
+
+    shap_col, ai_col = st.columns([1, 1])
+    with shap_col, st.container(border=True):
+        st.markdown("**판단 근거 · SHAP**")
+        feats = [(t["type_id"], f) for t in types for f in (t.get("top_features") or [])]
+        mx = max([abs(f.get("shap") or 0) for _, f in feats] or [1])
+        st.markdown(bar_rows([(f"{f.get('label') or f['feature']}  ·  유형 {tid[1:]} · 값 {f.get('value')}",
+                               f"{f.get('shap', 0):+.2f}", abs(f.get("shap") or 0) / mx) for tid, f in feats]),
+                    unsafe_allow_html=True)
+        if voc:
+            st.markdown("**최근 VOC**")
+            st.dataframe(pd.DataFrame(voc).rename(columns={"contact_date": "접수일", "category": "분류", "summary_text": "요약"}),
+                         hide_index=True, width="stretch")
+    with ai_col, st.container(border=True):
+        plans = st.session_state.setdefault("plans", {})
+        st.markdown("**AI 추천 솔루션**")
+        p1, p2 = st.columns(2)
+        use_llm = st.toggle("AI 로 문구 작성", value=llm_on, disabled=not llm_on,
+                            help="꺼져 있으면 기본(템플릿) 문구를 써요. 서버에 OpenAI 키가 있어야 켤 수 있어요.")
+        if p1.button("AI 추천 생성", type="primary", width="stretch"):
+            with st.spinner("Rule Engine → 문구 작성 → 검증 중..."):
+                res = call("POST", f"/subscriptions/{sub_id}/plan", timeout=180, json={"use_llm": use_llm})
+            if res:
+                plans[sub_id] = res
+        if d["runs"] and p2.button("최근 조치안 불러오기", width="stretch"):
+            res = call("GET", f"/runs/{d['runs'][0]['run_id']}")
+            if res:
+                plans[sub_id] = res
+        if sub_id in plans:
+            fresh = call("GET", f"/runs/{plans[sub_id]['run_id']}", quiet=True)    # 승인 기록 반영
+            render_plan(fresh or plans[sub_id], d)
+        else:
+            st.caption("위 버튼을 누르면 Rule Engine 후보 안에서 Agent 가 조치와 문구를 만들어요.")
+        with st.expander("🤝 협업 부서에 직접 전달 (Agent 제안 없이 상담자가 요청)"):
+            fd = st.multiselect("전달 부서", DEPT_NAMES, key=f"fd_{sub_id}")
+            fn = st.text_input("메모", key=f"fn_{sub_id}")
+            if st.button("전달 기록", key=f"fb_{sub_id}"):
+                r = call("POST", f"/subscriptions/{sub_id}/forward", json={
+                    "depts": fd, "note": fn, "run_id": plans[sub_id]["run_id"] if sub_id in plans else None})
+                if r:
+                    st.success(r["note"])
+    with st.expander("계산된 특징(features) · 조치 이력"):
+        st.json(ft, expanded=False)
+        if d["actions"]:
+            st.dataframe(pd.DataFrame(d["actions"])[["action_id", "created_at", "solution_id", "target", "status", "message_text"]],
+                         hide_index=True, width="stretch")
+
+
 with tab_care:
     if "flash" in st.session_state:
         kind, text = st.session_state.pop("flash")
         getattr(st, kind)(text)
-
-    f1, f2, f3 = st.columns([2, 2, 3])
-    risk_sel = f1.multiselect("위험도", ["HIGH", "MID", "LOW"], default=["HIGH", "MID"], format_func=lambda x: RISK_KO[x])
-    type_sel = f2.selectbox("1순위 유형", [""] + list(TYPE_NAMES), format_func=lambda t: type_label(t, TYPE_NAMES) if t else "전체")
-    q = f3.text_input("검색 (이름 · 구독 ID · 고객 ID)")
-    page_size = 30
-    page = st.number_input("페이지", min_value=1, value=1, step=1)
-    params = {"limit": page_size, "offset": (page - 1) * page_size}
-    if risk_sel:
-        params["risk"] = ",".join(risk_sel)
-    if type_sel:
-        params["type_id"] = type_sel
-    if q.strip():
-        params["q"] = q.strip()
-    lst = call("GET", "/subscriptions", params=params)
-
-    picked = None
-    if lst:
-        st.caption(f"총 {lst['total']:,}건 중 {len(lst['items'])}건 표시 · 행을 클릭하면 상세가 열려요")
-        df = pd.DataFrame(lst["items"])
-        if len(df):
-            view = df[["subscription_id", "customer_name", "product_category", "model_name", "monthly_fee",
-                       "churn_probability", "risk_level", "top_type_name"]].rename(columns={
-                "subscription_id": "구독 ID", "customer_name": "고객", "product_category": "제품군", "model_name": "모델",
-                "monthly_fee": "월 요금", "churn_probability": "이탈 확률", "risk_level": "위험도", "top_type_name": "1순위 유형"})
-            ev = st.dataframe(view, hide_index=True, width="stretch", on_select="rerun",
-                              selection_mode="single-row", key="cust_table",
-                              column_config={"이탈 확률": st.column_config.ProgressColumn(
-                                  format="%.2f", min_value=0, max_value=1),
-                                  "월 요금": st.column_config.NumberColumn(format="%d원")})
-            if ev.selection.rows:
-                picked = df.iloc[ev.selection.rows[0]]["subscription_id"]
-        else:
-            st.info("조건에 맞는 구독이 없어요.")
-    manual = st.text_input("또는 구독 ID 직접 입력", placeholder="예: S028507")
-    sub_id = manual.strip() or picked
-
-    if sub_id:
-        st.divider()
-        d = render_customer(sub_id)
-        if d:
-            plans = st.session_state.setdefault("plans", {})
-            p1, p2, p3 = st.columns([1, 1, 2])
-            use_llm = p3.toggle("LLM 으로 문구 작성", value=llm_on, disabled=not llm_on,
-                                help="꺼져 있으면 템플릿 문구를 써요. 서버에 OpenAI 키가 있어야 켤 수 있어요.")
-            if p1.button("🤖 AI 조치안 생성", type="primary"):
-                with st.spinner("Rule Engine → 문구 작성 → 검증 중..."):
-                    res = call("POST", f"/subscriptions/{sub_id}/plan", timeout=180, json={"use_llm": use_llm})
-                if res:
-                    plans[sub_id] = res
-            if d["runs"] and p2.button("최근 조치안 불러오기"):
-                res = call("GET", f"/runs/{d['runs'][0]['run_id']}")
-                if res:
-                    plans[sub_id] = res
-            if sub_id in plans:
-                # 승인 기록을 반영하기 위해 서버에서 다시 읽는다
-                fresh = call("GET", f"/runs/{plans[sub_id]['run_id']}", quiet=True)
-                render_plan(fresh or plans[sub_id])
-
-            with st.expander("🤝 협업 부서에 직접 전달 (Agent 제안 없이 상담자가 요청)"):
-                fd = st.multiselect("전달 부서", DEPT_NAMES, key=f"fd_{sub_id}")
-                fn = st.text_input("메모", key=f"fn_{sub_id}")
-                if st.button("전달 기록", key=f"fb_{sub_id}"):
-                    r = call("POST", f"/subscriptions/{sub_id}/forward", json={
-                        "depts": fd, "note": fn, "run_id": plans[sub_id]["run_id"] if sub_id in plans else None})
-                    if r:
-                        st.success(r["note"])
+    head("CUSTOMER CARE", "고객별 DCX 리포트 · 원스톱 조치")
+    left, right = st.columns([1, 3], gap="large")
+    with left:
+        with st.container(border=True):
+            risk = st.segmented_control("위험도", ["전체", "HIGH", "MID", "LOW"], default="전체", label_visibility="collapsed")
+            q = st.text_input("검색", placeholder="이름 · 고객번호 · 구독 ID", label_visibility="collapsed")
+            params = {"limit": 60}
+            if risk and risk != "전체":
+                params["risk"] = risk
+            else:
+                params["risk"] = "HIGH,MID,LOW"
+            if q.strip():
+                params["q"] = q.strip()
+            lst = call("GET", "/subscriptions", params=params) or {"total": 0, "items": []}
+            st.caption(f"고객 목록 · {len(lst['items'])} / {lst['total']:,}")
+            if "sel" not in st.session_state and lst["items"]:
+                st.session_state["sel"] = lst["items"][0]["subscription_id"]
+            with st.container(height=640, border=False):
+                for it in lst["items"]:
+                    on = it["subscription_id"] == st.session_state.get("sel")
+                    label = f"{it['customer_name']}  ·  {round(it['churn_probability'] * 100)}%\n{(it.get('top_type_id') or '-')[1:]} {it.get('top_type_name') or '유형 없음'}"
+                    if st.button(label, key=f"pick_{it['subscription_id']}", type="primary" if on else "secondary", width="stretch"):
+                        st.session_state["sel"] = it["subscription_id"]
+                        st.rerun()
+            manual = st.text_input("구독 ID 직접 입력", placeholder="예: S028507")
+            if manual.strip():
+                st.session_state["sel"] = manual.strip()
+    with right:
+        if st.session_state.get("sel"):
+            render_customer(st.session_state["sel"])
 
 
-# ================================================================== 인사이트
-with tab_ins:
-    ins = get("/insights")
-    if not ins:
-        st.warning("인사이트를 불러오지 못했어요.")
+# ================================================================== 제품 분석
+with tab_prod:
+    head("PRODUCT INSIGHT", "제품별 DCX 리포트", "6대 제품군의 구독 점유율 · 이탈 위험 분포 · 최근 3개월 · 주요 이탈 유형 · VOC 키워드를 한 화면에서 비교합니다.")
+    prods = (ins.get("product") or {})
+    ovp = {p["name"]: p for p in ((get("/overview") or {}).get("products") or [])}
+    tot = sum(p["n"] for p in prods.values()) or 1
+    if prods:
+        order = sorted(prods, key=lambda n: -prods[n]["n"])
+        shade = ["#7d2a3b", "#9a3d50", "#b8697a", "#d98a9a", "#e8aab8", "#f4c3cd"]
+        seg = "".join(f'<div style="width:{prods[n]["n"] / tot * 100:.1f}%;background:{shade[i % 6]}"></div>' for i, n in enumerate(order))
+        lg = "".join(f'<span style="margin-right:16px;font-size:13px"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;'
+                     f'background:{shade[i % 6]};margin-right:6px"></i>{esc(PRODUCT_LABEL.get(n, n))} <b>{prods[n]["n"] / tot * 100:.0f}%</b></span>'
+                     for i, n in enumerate(order))
+        with st.container(border=True):
+            st.markdown(f'<b>구독 점유율</b><div class="share">{seg}</div>{lg}', unsafe_allow_html=True)
+        for row in [order[i:i + 3] for i in range(0, len(order), 3)]:
+            cols = st.columns(3)
+            for col, n in zip(cols, row):
+                p, o = prods[n], ovp.get(n, {})
+                with col, st.container(border=True):
+                    hi, mid = (o.get("high", 0) / p["n"] * 100 if p["n"] else 0), (o.get("mid", 0) / p["n"] * 100 if p["n"] else 0)
+                    months = "".join(f'<div style="display:flex;justify-content:space-between;font-size:13px;margin:4px 0">'
+                                     f'<span style="color:rgba(246,238,240,.6)">{esc(m["m"])}</span><span>신규 <b>{m["new"]}명</b></span>'
+                                     f'<span style="color:#f4a9ba">해지문의 <b>{m["cancel_voc"]}건</b></span></div>' for m in p["months"])
+                    tt = bar_rows([(f"{t + 1}. {TYPE_NAMES.get(f'T{t + 1:02d}', '')}", f"{s}%", s / 100) for t, s in p["top_types"]])
+                    mxk = max([c for _, c in p["kw"]] or [1])
+                    kws = "".join(f'<span class="kw" style="font-size:{12 + 12 * c / mxk:.0f}px;opacity:{.55 + .45 * c / mxk:.2f}">{esc(k)}</span>'
+                                  for k, c in p["kw"][:10])
+                    st.markdown(
+                        f'<div style="display:flex;gap:14px;align-items:center"><img class="pimg" src="{img_uri(PRODUCT_IMG.get(n, ""))}">'
+                        f'<div style="flex:1"><b style="font-size:22px">{esc(PRODUCT_LABEL.get(n, n))}</b>'
+                        f'<div class="sub" style="margin:0">구독 {p["n"]:,}건 · 점유율</div></div>'
+                        f'<b style="font-size:22px;color:#f4a9ba">{p["n"] / tot * 100:.0f}%</b></div>'
+                        f'<div class="track" style="margin:12px 0 4px;display:flex"><div style="width:{hi:.1f}%;background:#8f3447"></div>'
+                        f'<div style="width:{mid:.1f}%;background:#d98a9a"></div></div>'
+                        f'<small style="color:rgba(246,238,240,.6)">위험 HIGH {hi:.0f}% · MID {mid:.0f}% · 방문 정시율 {p["ontime_pct"]}% · 재방문 {p["revisit_pct"]}%</small>'
+                        f'<div style="margin-top:14px;font-size:13px;font-weight:700">최근 3개월 신규 구독 / 해지 문의(VOC)</div>{months}'
+                        f'<div style="margin-top:12px;font-size:13px;font-weight:700">주요 이탈 유형</div>{tt}'
+                        f'<div style="margin-top:12px;font-size:13px;font-weight:700">VOC 문의 유형 (크기 = 접수 건수)</div><div>{kws}</div>',
+                        unsafe_allow_html=True)
+
+
+# ================================================================== 팀 분석
+with tab_team:
+    team = ins.get("team")
+    head("TEAM INSIGHT · DEPARTMENT DCX REPORT", "부서별 DCX 리포트", "① 부서 맞춤 인사이트 → ② 핵심 부서 심층 리포트 순서로 이어집니다.")
+    if not team:
+        st.info("팀 분석 데이터를 불러오지 못했어요.")
     else:
-        st.caption(f"기준일 {ins['as_of']}")
-        l, r = st.columns(2)
-        with l:
-            st.subheader("신규 구독 vs 해지 문의 (최근 6개월)")
-            tr = ins["trend"]
-            st.line_chart(pd.DataFrame({"신규 구독": tr["new"], "해지 문의": tr["cancel_voc"]}, index=tr["labels"]))
-        with r:
-            st.subheader("VOC 분류 상위")
-            st.bar_chart(pd.DataFrame(ins["voc_dist"], columns=["분류", "건수"]).set_index("분류"))
-
-        st.subheader("제품군별 인사이트")
-        prod = st.selectbox("제품군", list(ins["product"]))
-        pd_ = ins["product"][prod]
-        c = st.columns(5)
-        c[0].metric("구독 수", f"{pd_['n']:,}")
-        c[1].metric("고·중위험 비율", f"{pd_['risk_pct']}%")
-        c[2].metric("VOC 부정 비중", f"{pd_['voc_neg_pct']}%")
-        c[3].metric("방문 정시율", f"{pd_['ontime_pct']}%")
-        c[4].metric("AS 재방문율", f"{pd_['revisit_pct']}%")
-        a, b = st.columns(2)
-        with a:
-            st.markdown("**주요 이탈 유형**")
-            for t, share in pd_["top_types"]:
-                tid = f"T{t + 1:02d}"
-                st.write(f"- {type_label(tid, TYPE_NAMES)} — {share}%")
-            st.markdown("**VOC 키워드**")
-            st.dataframe(pd.DataFrame(pd_["kw"], columns=["분류", "건수"]), hide_index=True, width="stretch")
-        with b:
-            st.markdown("**최근 3개월 신규 vs 해지 문의**")
-            mm = pd.DataFrame(pd_["months"]).rename(columns={"new": "신규 구독", "cancel_voc": "해지 문의"}).set_index("m")
-            st.bar_chart(mm)
-
-        team = ins.get("team")
-        if team:
-            st.subheader(f"Team Insight · {team['month_label']}")
-            if team["dept"] and team["dept"][0].get("ai"):
-                st.caption("✨ AI 가 규칙 문장을 해석한 요약이에요(검증 실패 시 규칙 문장 그대로).")
-            for blk in team["dept"]:
-                with st.container(border=True):
-                    g = blk["g1"]
-                    st.markdown(f"**{g['t']}**")
-                    st.line_chart(pd.DataFrame({g["a"]: g["A"], g["b"]: g["B"]}, index=team["months"]))
-                    for line in blk["ins"]:
-                        st.markdown(f"- {line}")
-                    with st.expander("관련 리포트"):
-                        for title, day, tags, body in blk["rpt"]:
-                            st.markdown(f"**{title}** · {day} · {' '.join('`' + t + '`' for t in tags)}")
-                            st.text(body)
-            for blk in team["rdept"]:
-                with st.container(border=True):
-                    st.markdown(f"**{blk['title']}**")
-                    for line in blk["ins"]:
-                        st.markdown(f"- {line}")
+        dept = st.segmented_control("부서", DEPT_TABS, default=DEPT_TABS[0], label_visibility="collapsed") or DEPT_TABS[0]
+        blk = team["dept"][DEPT_TABS.index(dept)]
+        g = blk["g1"]
+        with st.container(border=True):
+            st.markdown(f"**{esc(dept)} · 맞춤 분석**  ·  {esc(g['t'])}")
+            st.line_chart(pd.DataFrame({g["a"]: g["A"], g["b"]: g["B"]}, index=team["months"]),
+                          color=["#f4a9ba", "#8f3447"])
+        ai_tag = " · ✨ AI 해석" if blk.get("ai") else ""
+        st.markdown('<div class="insights"><div class="e">KEY INSIGHTS · 3줄 요약' + ai_tag + '</div>' + "".join(
+            f'<div class="r"><span class="n">{i}</span><span>{md_bold(line)}</span></div>' for i, line in enumerate(blk["ins"], 1))
+            + "</div>", unsafe_allow_html=True)
+        st.markdown(f'<div class="eyebrow">{esc(team["month_label"])} · {esc(dept)}</div><b style="font-size:20px">이번 달 부서별 심층 분석 리포트</b>',
+                    unsafe_allow_html=True)
+        for title, day, tags, body in blk["rpt"]:
+            with st.expander(f"{title}  ·  {day}"):
+                st.markdown(" ".join(f"`{t}`" for t in tags))
+                st.text(body)
+        with st.expander("구독영업·전략 등 심층 리포트 (전체)"):
+            for rb in team["rdept"]:
+                st.markdown(f"**{rb['title']}**")
+                for line in rb["ins"]:
+                    st.markdown(f"- {line}")
+                for sec in rb.get("secs") or []:
+                    st.markdown(f"**{sec[0]}**")
+                    st.text(sec[1])
 
 
-# ================================================================== 설문 · 신규 유형
+# ================================================================== 설문 분석
 with tab_survey:
+    head("SURVEY INSIGHT", "설문 분석", "발송 · 응답 현황과 불편했던 점, 원하는 조치, 새 솔루션 아이디어를 모아 봅니다.")
     eda = get("/survey/eda")
     if eda and eda.get("ready"):
-        st.subheader("설문 현황")
         c = st.columns(4)
-        c[0].metric("발송", f"{eda['sent']:,}")
-        c[1].metric("응답", f"{eda['responded']:,}")
-        c[2].metric("응답률", f"{eda['response_rate']}%")
-        c[3].metric("완료율", f"{eda['completion_rate']}%")
-        a, b = st.columns(2)
-        with a:
+        for col, (k, v, hero) in zip(c, [("발송", f"{eda['sent']:,}", False), ("응답", f"{eda['responded']:,}", False),
+                                         ("응답률", f"{eda['response_rate']}%", True), ("완료율", f"{eda['completion_rate']}%", False)]):
+            bg = "linear-gradient(135deg,#fbd9e1,#f4a9ba)" if hero else "rgba(0,0,0,.28)"
+            fg = "#2a1018" if hero else "#f6eef0"
+            col.markdown(f'<div class="kv" style="background:{bg};color:{fg}"><small style="color:{fg}">{k}</small>'
+                         f'<b style="font-size:26px">{v}</b></div>', unsafe_allow_html=True)
+        a, b, c3 = st.columns(3)
+        for col, key, title in ((a, "issues", "불편했던 점"), (b, "wanted", "원하는 조치"), (c3, "newsol", "새 솔루션 아이디어")):
+            with col, st.container(border=True):
+                items = sorted(eda[key]["items"], key=lambda x: -x["n"])
+                mx = items[0]["pct"] if items else 1
+                st.markdown(f"**{title}** · 응답 {eda[key]['n']:,}", unsafe_allow_html=True)
+                st.markdown(bar_rows([(x["label"], f"{x['pct']}% · {x['n']}명", x["pct"] / mx) for x in items[:8]]), unsafe_allow_html=True)
+        d1, d2 = st.columns(2)
+        with d1, st.container(border=True):
             st.markdown("**설문 종류별 응답률**")
-            st.dataframe(pd.DataFrame(eda["by_type"]).rename(columns={"label": "종류", "n": "발송", "resp": "응답", "pct": "응답률(%)"}),
-                         hide_index=True, width="stretch")
+            st.markdown(bar_rows([(x["label"], f"{x['pct']}% ({x['resp']}/{x['n']})", x["pct"] / 40) for x in eda["by_type"]]),
+                        unsafe_allow_html=True)
             st.markdown("**현재 상태**")
-            st.bar_chart(pd.DataFrame(eda["status"]["items"]).set_index("label")["n"])
-        with b:
-            for key, title in (("issues", "불편했던 점"), ("wanted", "원하는 조치"), ("newsol", "새 솔루션 아이디어")):
-                st.markdown(f"**{title}** (응답 {eda[key]['n']:,})")
-                st.bar_chart(pd.DataFrame(eda[key]["items"]).set_index("label")["pct"], horizontal=True)
-        st.markdown("**자주 나온 주관식 응답**")
-        st.dataframe(pd.DataFrame(eda["open_texts"]).rename(columns={"text": "응답", "n": "건수"}),
-                     hide_index=True, width="stretch")
+            st.markdown(bar_rows([(x["label"], f"{x['pct']}% · {x['n']}명", x["pct"] / 40) for x in eda["status"]["items"]]),
+                        unsafe_allow_html=True)
+        with d2, st.container(border=True):
+            st.markdown("**자주 나온 주관식 응답**")
+            for i, x in enumerate(eda["open_texts"], 1):
+                cls = ' class="hl"' if i <= 3 else ""
+                st.markdown(f'<div{cls} style="padding:8px 12px;margin:4px 0;font-size:{15 if i <= 3 else 13}px"><b style="color:#f4a9ba">{i}</b> '
+                            f'&nbsp; {esc(x["text"])} <span style="float:right;opacity:.7">{x["n"]}건</span></div>', unsafe_allow_html=True)
     else:
         st.info("설문 데이터가 아직 적재되지 않았어요.")
 
-    st.divider()
-    st.subheader("신규 유형 후보 검토")
+
+# ================================================================== 신규 유형
+with tab_new:
+    head("NEW TYPES", "신규 이탈 유형 후보", "설문에서 반복해 나타난 불만을 후보로 만들고, 관리자가 채택하면 비활성 상태로 등록됩니다.")
     props = call("GET", "/proposals", quiet=True)
     if props:
         cn = props["counts"]
-        st.caption(f"검토중 {cn['검토중']} · 채택 {cn['채택']} · 기각 {cn['기각']}")
-        if not props["proposals"]:
-            st.info("후보가 없어요. backend 에서 `python scripts/make_candidates.py --in data_in/data_out --provider mock` 으로 만들 수 있어요.")
-        for p in props["proposals"]:
+        status = st.segmented_control("상태", ["검토중", "채택", "기각"], default="검토중", label_visibility="collapsed",
+                                      format_func=lambda s: f"{s} {cn.get(s, 0)}") or "검토중"
+        shown = [p for p in props["proposals"] if p["status"] == status]
+        if not shown:
+            st.info("해당 상태의 후보가 없어요. 후보는 backend 에서 `python scripts/make_candidates.py --in data_in/data_out --provider mock` 으로 만들 수 있어요.")
+        for p in shown:
             with st.container(border=True):
-                st.markdown(f"**[{p['kind']}] {p['title']}** — 상태 `{p['status']}` · 근거 {p['support']}건({pct(p['share'], 0)}) · "
-                            f"{p['votes']}/{p['n_runs']}회 등장")
-                st.caption(f"{p['description']} · 가장 가까운 기존 유형: {type_label(p.get('closest_type_id'), TYPE_NAMES)}")
+                st.markdown(f'<span class="chip">{esc(p["kind"])}</span> <b style="font-size:20px">{esc(p["title"])}</b>', unsafe_allow_html=True)
+                st.caption(f"근거 {p['support']}건({pct(p['share'], 0)}) · {p['votes']}/{p['n_runs']}회 등장 · "
+                           f"가장 가까운 기존 유형 {type_label(p.get('closest_type_id'), TYPE_NAMES)} · {p['description']}")
                 for qt in p["quotes"][:3]:
                     st.markdown(f"> {qt}")
                 for s_ in p["solutions"]:
                     st.write(f"💡 {s_['title']} ({s_['category']}) — {s_['message_hint']}")
                 k = f"prop_{p['proposal_id']}"
-                x1, x2, x3 = st.columns(3)
+                x1, x2, x3 = st.columns([1, 1, 2])
                 if p["status"] == "검토중":
                     if x1.button("채택", key=k + "_a", type="primary"):
                         if call("POST", f"/proposals/{p['proposal_id']}/approve", json={"reviewer": reviewer}):
@@ -430,9 +567,8 @@ with tab_survey:
                 elif x1.button("검토중으로 되돌리기", key=k + "_u"):
                     if call("POST", f"/proposals/{p['proposal_id']}/restore"):
                         st.rerun()
-
-        if props["new_solutions"]:
-            st.subheader("채택된 신규 솔루션 활성화")
+        if status == "채택" and props["new_solutions"]:
+            st.markdown("#### 채택된 신규 솔루션 활성화")
             for s_ in props["new_solutions"]:
                 with st.container(border=True):
                     st.json(s_, expanded=False)
@@ -447,20 +583,28 @@ with tab_survey:
 
 # ================================================================== 조치 이력
 with tab_log:
-    n = st.slider("표시 건수", 10, 200, 50, step=10)
-    if st.button("새로고침"):
-        st.rerun()
-    acts = call("GET", "/actions", params={"limit": n})
-    if acts:
-        df = pd.DataFrame(acts)
-        st.dataframe(df[["action_id", "created_at", "customer_name", "subscription_id", "solution_id", "target", "message_kind",
-                         "offer_cost", "status", "forward_depts", "memo_edited_yn", "message_text"]].rename(columns={
-            "action_id": "ID", "created_at": "시각", "customer_name": "고객", "subscription_id": "구독", "solution_id": "솔루션",
-            "target": "대상", "message_kind": "종류", "offer_cost": "비용", "status": "상태", "forward_depts": "전달 부서",
-            "memo_edited_yn": "수정", "message_text": "내용"}), hide_index=True, width="stretch")
-        c = st.columns(3)
-        c[0].metric("기록", len(df))
-        c[1].metric("승인(시뮬레이션)", int((df["status"] == "simulated").sum()))
-        c[2].metric("반려", int((df["status"] == "반려").sum()))
-    elif acts == []:
-        st.info("아직 기록된 조치가 없어요. 고객 케어 탭에서 조치안을 승인해 보세요.")
+    head("ACTION HISTORY", "조치 이력", "상담자가 승인·반려·전달한 모든 조치가 시간순으로 기록됩니다. 모든 발송은 시뮬레이션입니다.")
+    acts = call("GET", "/actions", params={"limit": 200})
+    if acts is not None:
+        def kind(a):
+            if a["status"] == "반려":
+                return "반려"
+            return "부서 전달" if a["target"] == "LG 내부 전달" else "알림톡 발송"
+        for a in acts:
+            a["_k"] = kind(a)
+        cnt = {k: sum(1 for a in acts if a["_k"] == k) for k in ("알림톡 발송", "부서 전달", "반려")}
+        flt = st.segmented_control("필터", ["전체", "알림톡 발송", "부서 전달", "반려"], default="전체", label_visibility="collapsed",
+                                   format_func=lambda k: f"{k} {len(acts) if k == '전체' else cnt[k]}건") or "전체"
+        rows = [a for a in acts if flt == "전체" or a["_k"] == flt]
+        with st.container(border=True):
+            if not rows:
+                st.caption("아직 기록된 조치가 없어요. 고객 케어 탭에서 조치안을 승인해 보세요.")
+            else:
+                body = "".join(
+                    f'<tr><td>{esc(str(a["created_at"])[5:16].replace("-", "."))}</td>'
+                    f'<td><b>{esc(a.get("customer_name"))}</b> ({esc(a["subscription_id"])})</td><td>{esc(a["_k"])}</td>'
+                    f'<td>{esc(a["solution_id"])}</td><td>{esc(str(a["message_text"])[:46])}…</td><td>{esc(a.get("forward_depts") or "-")}</td>'
+                    f'<td>{won(a["offer_cost"])}</td><td class="{"ng" if a["_k"] == "반려" else "ok"}">'
+                    f'{"반려" if a["_k"] == "반려" else "완료 (시뮬레이션)"}</td></tr>' for a in rows)
+                st.markdown('<table class="log"><tr><th>일시</th><th>고객</th><th>조치 종류</th><th>솔루션</th><th>내용</th>'
+                            f'<th>전달 부서</th><th>비용</th><th>상태</th></tr>{body}</table>', unsafe_allow_html=True)

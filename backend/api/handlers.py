@@ -69,6 +69,22 @@ def list_subscriptions(risk=None, type_id=None, q=None, limit=50, offset=0):
     return {'total': total, 'items': rows}
 
 
+_LABELS = {}
+
+
+def _feature_labels():
+    """model/data/feature_dictionary.json 의 피처 한글 이름(한 번만 읽는다)."""
+    if not _LABELS:
+        import json
+        from config import ROOT
+        try:
+            fd = json.loads((ROOT.parent / 'model' / 'data' / 'feature_dictionary.json').read_text(encoding='utf-8'))
+            _LABELS.update({f['feature']: f['display_ko'] for f in fd['features']})
+        except (OSError, ValueError, KeyError):
+            _LABELS['_'] = None
+    return _LABELS
+
+
 def get_subscription(sub_id):
     with session() as s:
         ctx = build_context(s, sub_id)
@@ -77,6 +93,10 @@ def get_subscription(sub_id):
         runs = s.fetchall('SELECT run_id, created_at, llm_used FROM agent_run WHERE subscription_id=? '
                           'ORDER BY run_id DESC LIMIT 10', (sub_id,))
         actions = s.fetchall('SELECT * FROM action_log WHERE subscription_id=? ORDER BY action_id DESC LIMIT 20', (sub_id,))
+    labels = _feature_labels()
+    for t in ctx['types']:       # 화면에 영문 피처명 대신 한글 이름을 보여 주기 위함
+        for f in t.get('top_features') or []:
+            f.setdefault('label', labels.get(f.get('feature')))
     return {k: ctx[k] for k in ('today', 'subscription', 'customer', 'prediction', 'types', 'manager', 'features', 'recent_voc')} | {
         'runs': runs, 'actions': actions}
 
