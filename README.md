@@ -66,7 +66,7 @@ LG전자 AX School AI 엔지니어 과정 Build2 (6인 팀, 2026.09.21 ~ 10.13).
 │   ├── scripts/      make_candidates.py(설문 → 신규 유형 후보) 외 점검 스크립트
 │   ├── tests/        test_all.py (PostgreSQL 필요)
 │   ├── data/catalog/ 솔루션 카탈로그 JSON
-│   ├── data_in/      CSV 데이터 (git 제외, 직접 넣기)
+│   ├── data_in/      합성 데이터 CSV 15개 (약 50MB)
 │   ├── config.py     설정(.env 읽기)
 │   └── .env.example
 ├── model/            Agent 엔진 원본 (팀원 제공, 수정 없이 보관 — 새 버전이 오면 이 폴더만 교체)
@@ -127,7 +127,7 @@ pip install -r requirements.txt
 copy .env.example .env                  # Mac/Linux: cp .env.example .env
 ```
 
-CSV 15개(`customer`, `subscription`, `usage_thinq`, `care_visit`, `voc_contact`, `payment`, `notice_log`, `care_manager`, `churn_prediction`, `churn_prediction_type`, `synth_churn_label`, `synth_truth_type`, `survey_send`, `survey_response`, `survey_answer`)를 `backend/data_in/data_out/` 에 넣고 적재합니다.
+저장소에 포함된 CSV 15개(`customer`, `subscription`, `usage_thinq`, `care_visit`, `voc_contact`, `payment`, `notice_log`, `care_manager`, `churn_prediction`, `churn_prediction_type`, `synth_churn_label`, `synth_truth_type`, `survey_send`, `survey_response`, `survey_answer`)를 DB 에 적재합니다.
 
 ```bash
 python -m db.load --data data_in/data_out --reset
@@ -241,7 +241,7 @@ streamlit run app.py                    # http://localhost:8501
 | 설문 | `survey_send`, `survey_response`, `survey_answer`, `ai_proposal` |
 | 정답(Agent 접근 금지) | `synth_churn_label`, `synth_truth_type` |
 
-스키마 의도와 합성 데이터 생성 규칙은 [docs/02_데이터_스키마_설계서.md](docs/02_데이터_스키마_설계서.md). CSV 는 용량 때문에 git 에 올리지 않았습니다(`backend/data_in/`).
+스키마 의도와 합성 데이터 생성 규칙은 [docs/02_데이터_스키마_설계서.md](docs/02_데이터_스키마_설계서.md). 합성 데이터 CSV 는 `backend/data_in/data_out/` 에 포함되어 있습니다.
 
 ## 9. 테스트
 
