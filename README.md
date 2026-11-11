@@ -7,7 +7,7 @@ LG전자 AX School AI 엔지니어 과정 Build2 (6인 팀, 2026.09.21 ~ 10.13).
 
 ## 화면
 
-> 아래 화면은 `front/`(Streamlit)를 실제로 실행해 캡처한 것입니다. 데이터는 모두 합성 데이터입니다.
+> 아래 화면은 `front/`(Streamlit)를 실제로 실행해 캡처한 것입니다(라이트 모드). 화면 오른쪽 위 토글로 다크/라이트를 바꿀 수 있고, 기본은 다크입니다. 데이터는 모두 합성 데이터입니다.
 
 ![전체 현황](docs/images/01-overview.png)
 
@@ -73,7 +73,7 @@ LG전자 AX School AI 엔지니어 과정 Build2 (6인 팀, 2026.09.21 ~ 10.13).
 ├── front/            Streamlit 화면. backend API 만 호출하고 DB 에는 붙지 않는다
 │   ├── app.py
 │   ├── assets/       제품 이미지
-│   ├── .streamlit/   다크 테마 설정(config.toml)
+│   ├── .streamlit/   Streamlit 테마 설정(config.toml)
 │   └── requirements.txt
 ├── backend/          FastAPI + DB + Agent 연결
 │   ├── api/          main.py(라우트) · handlers.py(로직) · engine.py(model/ 연결 어댑터)
@@ -206,6 +206,7 @@ streamlit run app.py                    # http://localhost:8501
 | 조치 이력 | `action_log` 조회 (알림톡 발송 · 부서 전달 · 반려 필터) | `/actions` |
 
 - 승인·반려는 **솔루션 항목별**로 보냅니다. 고객 문구와 협업 메모를 각각 고쳐도 서로 덮어쓰지 않습니다.
+- 오른쪽 위 "라이트" 토글로 다크/라이트 모드를 전환합니다(원본 LG Care Better 화면과 같은 색 구성).
 - 서버에 OpenAI 키가 없으면 "LLM 으로 문구 작성" 토글이 꺼진 채 템플릿 문구를 씁니다.
 - 조치안은 `GET /runs/{id}` 로 다시 불러오므로 새로고침해도 이어서 볼 수 있습니다.
 

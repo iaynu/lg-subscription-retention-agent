@@ -25,9 +25,46 @@ PRODUCT_IMG = {"의류관리기": "p-styler", "건조기": "p-dryer", "냉장고
                "에어컨": "p-aircon", "정수기": "p-purifier"}
 DEPT_TABS = ["CX혁신부서", "구독운영부서", "고객케어부서"]
 
-CSS = """
-<style>
-.stApp{background:radial-gradient(900px 520px at 8% -8%,#4a1f2b99,transparent),radial-gradient(800px 500px at 100% 6%,#3a2a4a55,transparent),#0d0809;}
+PALETTE = {
+    "dark": {"bg": "radial-gradient(900px 520px at 8% -8%,#4a1f2b99,transparent),radial-gradient(800px 500px at 100% 6%,#3a2a4a55,transparent),#0d0809",
+             "card": "linear-gradient(145deg,rgba(255,235,240,.07),rgba(255,235,240,.02))", "inner": "rgba(0,0,0,.28)",
+             "border": "rgba(217,138,154,.2)", "txt": "#f6eef0", "sub": "rgba(246,238,240,.64)", "track": "rgba(255,255,255,.1)",
+             "chip": "rgba(255,255,255,.06)", "acc": "#f4a9ba", "hl": "rgba(217,138,154,.14)"},
+    "light": {"bg": "#efe7e7", "card": "#ffffff", "inner": "#f6eff0", "border": "rgba(125,42,59,.28)", "txt": "#241c1e",
+              "sub": "rgba(36,28,30,.66)", "track": "rgba(36,28,30,.1)", "chip": "rgba(36,28,30,.05)", "acc": "#8f3447",
+              "hl": "#fbe9ee"},
+}
+# 라이트 모드에서는 Streamlit 기본(다크) 위젯 색을 덮어쓴다
+LIGHT_FIX = """
+.stApp [data-testid="stTextInputRootElement"],.stApp [data-testid="stTextAreaRootElement"],.stApp [data-testid="stTextInputRootElement"] *,.stApp [data-testid="stTextAreaRootElement"] *,.stApp [data-baseweb="input"] *,.stApp [data-baseweb="textarea"] *{background:#fff!important;color:#241c1e!important;border-color:var(--border)!important}
+.stApp input::placeholder,.stApp textarea::placeholder{color:rgba(36,28,30,.45)!important;-webkit-text-fill-color:rgba(36,28,30,.45)!important}
+.stApp [data-testid="stSelectbox"] *,.stApp [data-testid="stMultiSelect"] [data-baseweb="select"] *{background:#fff;color:#241c1e}
+.stApp [data-testid="stButtonGroup"] button{background:#fff!important;color:#241c1e!important;border:1px solid var(--border)!important}
+.stApp [data-testid="stButtonGroup"] button p{color:inherit!important}
+.stApp [data-testid="stButtonGroup"] button[aria-checked="true"],.stApp [data-testid="stButtonGroup"] button[aria-pressed="true"],.stApp [data-testid="stButtonGroup"] button[kind$="Active"]{background:#fbe9ee!important;color:#8f3447!important;border-color:#8f3447!important}
+.stApp [data-baseweb="input"],.stApp [data-baseweb="textarea"],.stApp [data-baseweb="select"]>div,.stApp [data-baseweb="base-input"]{background:#fff!important;border-color:var(--border)!important}
+.stApp input,.stApp textarea{color:#241c1e!important;-webkit-text-fill-color:#241c1e!important}
+.stApp [data-testid="stExpander"] details{background:#fff;border-color:var(--border)}
+.stApp [data-testid="stExpander"] summary,.stApp [data-testid="stExpander"] summary *{color:#241c1e}
+.stApp button[kind="secondary"],.stApp [data-testid="stBaseButton-secondary"]{background:#fff;color:#241c1e;border:1px solid var(--border)}
+.stApp [data-testid="stSegmentedControl"] button,.stApp [data-testid="stBaseButton-segmented_control"]{background:#fff!important;color:#241c1e!important;border-color:var(--border)!important}
+.stApp [data-testid="stBaseButton-segmented_controlActive"]{background:#fbe9ee!important;color:#8f3447!important;border-color:#8f3447!important}
+[data-baseweb="popover"] ul,[data-baseweb="popover"] li,[data-baseweb="menu"]{background:#fff!important;color:#241c1e!important}
+.stApp [data-baseweb="tag"]{background:#fbe9ee!important;color:#8f3447!important}
+.stApp [data-testid="stCaptionContainer"],.stApp [data-testid="stWidgetLabel"] *{color:var(--sub)!important}
+.stApp div[data-testid="stMarkdownContainer"] code{background:#fbe9ee;color:#8f3447}
+"""
+
+
+def build_css(light):
+    pal = PALETTE["light" if light else "dark"]
+    var = ";".join(f"--{k}:{v}" for k, v in pal.items())
+    css = f"<style>:root{{{var}}}{BASE_CSS}{LIGHT_FIX if light else ''}</style>"
+    return css.replace("\n", " ")        # 빈 줄이 있으면 마크다운이 HTML 블록을 끝내 버린다
+
+
+BASE_CSS = """
+.stApp{background:var(--bg);color:var(--txt)}
 header[data-testid="stHeader"],#MainMenu,footer{display:none!important}
 .block-container{max-width:1320px;padding-top:1.1rem;padding-bottom:4rem}
 h1,h2,h3{letter-spacing:-.01em}
@@ -35,28 +72,28 @@ h1,h2,h3{letter-spacing:-.01em}
 .brand{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 10px}
 .brand .l{display:flex;align-items:center;gap:12px}
 .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#8f3447,#d98a9a);display:grid;place-items:center;font-weight:800;color:#fff}
-.brand b{font-size:17px}.brand small{display:block;color:rgba(246,238,240,.6);font-size:12px;margin-top:-2px}
-.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(217,138,154,.2);font-size:12px;color:rgba(246,238,240,.8)}
+.brand b{font-size:17px}.brand small{display:block;color:var(--sub);font-size:12px;margin-top:-2px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--chip);border:1px solid var(--border);font-size:12px;color:var(--txt)}
 .dot{width:8px;height:8px;border-radius:50%;background:#34d399;display:inline-block}
 /* 탭 = 상단 내비게이션 */
-div[data-baseweb="tab-list"]{gap:6px;border-bottom:1px solid rgba(217,138,154,.18)}
-button[data-baseweb="tab"]{font-weight:700;color:rgba(246,238,240,.6);padding:12px 18px}
-button[data-baseweb="tab"][aria-selected="true"]{color:#fff}
-div[data-baseweb="tab-highlight"]{background:#f4a9ba!important;height:3px}
+div[data-baseweb="tab-list"]{gap:6px;border-bottom:1px solid var(--border)}
+[role="tab"]{font-weight:700;color:var(--sub)!important;padding:12px 18px}[role="tab"] *{color:inherit!important}
+[role="tab"][aria-selected="true"]{color:var(--txt)!important}
+div[data-baseweb="tab-highlight"]{background:var(--acc)!important;height:3px}
 /* 카드 */
-div[data-testid="stVerticalBlockBorderWrapper"]{background:linear-gradient(145deg,rgba(255,235,240,.07),rgba(255,235,240,.02));border:1px solid rgba(217,138,154,.2)!important;border-radius:22px!important}
-.eyebrow{color:#f4a9ba;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:14px 0 2px}
+div[class*="st-key-card"]{background:var(--card)!important;border:1px solid var(--border)!important;border-radius:22px!important}
+.eyebrow{color:var(--acc);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:14px 0 2px}
 .title{font-size:36px;font-weight:800;line-height:1.2;margin:0}
 .title.c{text-align:center;font-size:38px}.eyebrow.c{text-align:center}
-.sub{color:rgba(246,238,240,.64);font-size:14px;margin:6px 0 14px}
+.sub{color:var(--sub);font-size:14px;margin:6px 0 14px}
 .chip{display:inline-block;padding:6px 14px;border-radius:999px;background:linear-gradient(135deg,#8f3447,#b8697a);color:#fff;font-size:12px;font-weight:700;margin:0 6px 6px 0}
-.chip.o{background:rgba(255,255,255,.06);border:1px solid rgba(217,138,154,.25);color:#f6eef0}
-.kv{background:rgba(0,0,0,.28);border-radius:14px;padding:10px 14px}
-.kv small{display:block;color:rgba(246,238,240,.6);font-size:11px}.kv b{font-size:15px}
-.track{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.chip.o{background:var(--chip);border:1px solid var(--border);color:var(--txt)}
+.kv{background:var(--inner);border-radius:14px;padding:10px 14px}
+.kv small{display:block;color:var(--sub);font-size:11px}.kv b{font-size:15px}
+.track{height:8px;border-radius:99px;background:var(--track);overflow:hidden}
 .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8f3447,#d98a9a)}
 .brow{margin:9px 0}.brow .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.brow .t span:last-child{font-weight:700}
-.big{font-size:44px;font-weight:800;color:#f4a9ba;line-height:1}
+.big{font-size:44px;font-weight:800;color:var(--acc);line-height:1}
 .avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#8f3447,#b8697a);display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff}
 .persona{padding:6px 4px}.persona q{display:block;font-size:26px;font-weight:800;line-height:1.35;margin:10px 0 8px;quotes:"“" "”"}
 .insights{background:linear-gradient(135deg,#8f3447cc,#b8697acc);border-radius:22px;padding:22px 26px;margin-top:14px}
@@ -64,18 +101,21 @@ div[data-testid="stVerticalBlockBorderWrapper"]{background:linear-gradient(145de
 .insights .r{display:flex;gap:18px;align-items:baseline;padding:12px 0;border-top:1px solid rgba(255,255,255,.25);font-size:16px;font-weight:600}
 .insights .r:first-of-type{border-top:0}.insights .n{font-size:20px;font-weight:800}
 .legend .it{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:10px;font-size:14px}
-.legend .it i{width:12px;height:12px;border-radius:4px;display:inline-block}.legend .it span.v{margin-left:auto;color:rgba(246,238,240,.7)}
+.legend .it i{width:12px;height:12px;border-radius:4px;display:inline-block}.legend .it span.v{margin-left:auto;color:var(--sub)}
 .share{display:flex;height:16px;border-radius:99px;overflow:hidden;margin:10px 0}
 .pimg{width:76px;height:76px;border-radius:18px;object-fit:cover;background:#f3e8d6}
-.kw{display:inline-block;margin:3px 8px;font-weight:700;color:#f4a9ba}
-table.log{width:100%;border-collapse:collapse;font-size:13px}table.log th{color:rgba(246,238,240,.55);text-align:left;font-weight:600;padding:8px 10px}
-table.log td{padding:11px 10px;border-top:1px solid rgba(217,138,154,.16)}.ok{color:#34d399;font-weight:700}.ng{color:#e06a6a;font-weight:700}
-.hl{background:rgba(217,138,154,.14);border-radius:12px}
+.kw{display:inline-block;margin:3px 8px;font-weight:700;color:var(--acc)}
+table.log{width:100%;border-collapse:collapse;font-size:13px}table.log th{color:var(--sub);text-align:left;font-weight:600;padding:8px 10px}
+table.log td{padding:11px 10px;border-top:1px solid var(--border)}.ok{color:#34d399;font-weight:700}.ng{color:#e06a6a;font-weight:700}
+.hl{background:var(--hl);border-radius:12px}
 /* 버튼 */
 button[kind="primary"]{background:linear-gradient(135deg,#8f3447,#b8697a)!important;border:0!important;color:#fff!important;font-weight:700}
-</style>
 """
-st.markdown(CSS, unsafe_allow_html=True)
+
+
+
+LIGHT = bool(st.session_state.get("light", False))
+st.markdown(build_css(LIGHT), unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------ API
@@ -157,6 +197,60 @@ def bar_rows(items, color_fn=None):
     return "".join(out)
 
 
+_CARD_N = [0]
+
+
+def card():
+    """테마 색을 따르는 카드(고유 key 가 붙은 border 컨테이너 → CSS 로 스타일)."""
+    _CARD_N[0] += 1
+    return st.container(border=True, key=f"card{_CARD_N[0]}")
+
+
+def dual_line(labels, a, b, name_a, name_b, w=900, h=250):
+    """두 지표를 각자 눈금으로 그리는 이중 축 선 그래프(SVG, 테마 색 변수 사용)."""
+    pl, pr, pt, pb = 52, 52, 24, 36
+    n = len(labels)
+    xs = [pl + i * (w - pl - pr) / max(n - 1, 1) for i in range(n)]
+
+    def scale(v):
+        lo, hi = min(v), max(v)
+        span = (hi - lo) or 1
+        return [pt + (h - pt - pb) * (1 - (x - lo) / span) for x in v], lo, hi
+
+    ya, la, ha = scale(a)
+    yb, lb, hb = scale(b)
+    grid = "".join(f'<line x1="{pl}" x2="{w - pr}" y1="{pt + (h - pt - pb) * k / 3:.0f}" y2="{pt + (h - pt - pb) * k / 3:.0f}" '
+                   f'style="stroke:var(--track)"/>' for k in range(4))
+    pa = " ".join(f"{x:.0f},{y:.0f}" for x, y in zip(xs, ya))
+    pb_ = " ".join(f"{x:.0f},{y:.0f}" for x, y in zip(xs, yb))
+    dots = "".join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="4" style="fill:var(--acc)"/>' for x, y in zip(xs, ya))
+    xl = "".join(f'<text x="{x:.0f}" y="{h - 12}" text-anchor="middle" font-size="12" style="fill:var(--sub)">{esc(lab)}</text>'
+                 for x, lab in zip(xs, labels))
+    axis = (f'<text x="{pl - 8}" y="{pt + 4}" text-anchor="end" font-size="11" style="fill:var(--sub)">{ha:g}</text>'
+            f'<text x="{pl - 8}" y="{h - pb + 4}" text-anchor="end" font-size="11" style="fill:var(--sub)">{la:g}</text>'
+            f'<text x="{w - pr + 8}" y="{pt + 4}" font-size="11" style="fill:var(--sub)">{hb:g}</text>'
+            f'<text x="{w - pr + 8}" y="{h - pb + 4}" font-size="11" style="fill:var(--sub)">{lb:g}</text>')
+    legend = (f'<span style="margin-right:18px"><b style="color:var(--acc)">━</b> {esc(name_a)} (왼쪽 축)</span>'
+              f'<span><b style="color:var(--txt)">┅</b> {esc(name_b)} (오른쪽 축)</span>')
+    return (f'<svg viewBox="0 0 {w} {h}" width="100%">{grid}'
+            f'<polyline points="{pb_}" fill="none" stroke-width="2.5" stroke-dasharray="6 5" style="stroke:var(--txt)"/>'
+            f'<polyline points="{pa}" fill="none" stroke-width="3" style="stroke:var(--acc)"/>{dots}{xl}{axis}</svg>'
+            f'<div style="font-size:13px;color:var(--sub);margin-top:4px">{legend}</div>')
+
+
+def html_table(df, max_rows=200):
+    """DataFrame 을 테마 색을 따르는 HTML 표로(st.dataframe 은 라이트/다크 전환이 안 돼서)."""
+    head_ = "".join(f"<th>{esc(c)}</th>" for c in df.columns)
+    rows = "".join("<tr>" + "".join(f"<td>{esc(v)}</td>" for v in r) + "</tr>" for r in df.head(max_rows).itertuples(index=False))
+    st.markdown(f'<div style="overflow-x:auto"><table class="log"><tr>{head_}</tr>{rows}</table></div>', unsafe_allow_html=True)
+
+
+def pre(obj):
+    import json
+    st.markdown(f'<pre style="background:var(--inner);color:var(--txt);border-radius:12px;padding:12px;font-size:12px;'
+                f'overflow:auto;max-height:260px">{esc(json.dumps(obj, ensure_ascii=False, indent=1))}</pre>', unsafe_allow_html=True)
+
+
 def type_label(type_id, names):
     return f"{type_id} {names.get(type_id, '')}".strip() if type_id else "-"
 
@@ -168,11 +262,12 @@ if health is None:
     st.stop()
 llm_on = health.get("llm") == "openai"
 ins = get("/insights") or {}
-st.markdown(
-    f'<div class="brand"><div class="l"><div class="logo">C</div><div><b>LG Care Better</b>'
-    f'<small>구독 이탈 방어 AI Agent</small></div></div>'
-    f'<span class="pill"><span class="dot"></span>API 연결됨 · 기준일 {esc(ins.get("as_of", "-"))} · '
-    f'{esc(health["db"])} · 문구 {"AI" if llm_on else "템플릿"}</span></div>', unsafe_allow_html=True)
+hb, hs, ht = st.columns([5, 4, 1.4], vertical_alignment="center")
+hb.markdown('<div class="brand"><div class="l"><div class="logo">C</div><div><b>LG Care Better</b>'
+            '<small>구독 이탈 방어 AI Agent</small></div></div></div>', unsafe_allow_html=True)
+hs.markdown(f'<div style="text-align:right"><span class="pill"><span class="dot"></span>API 연결됨 · 기준일 {esc(ins.get("as_of", "-"))} · '
+            f'{esc(health["db"])} · 문구 {"AI" if llm_on else "템플릿"}</span></div>', unsafe_allow_html=True)
+ht.toggle("☀️ 라이트", key="light")
 
 catalog = get("/catalog") or {"types": [], "solutions": []}
 TYPE_NAMES = {t["type_id"]: t["type_name"] for t in catalog["types"]}
@@ -197,11 +292,11 @@ def donut_svg(counts, labels, size=460):
                     f'transform="rotate(-90 {cx} {cx})"><title>{esc(labels[i])} {counts[i]:,}명</title></circle>')
         off += ln
     top = max(range(len(counts)), key=lambda i: counts[i])
-    center = (f'<text x="{cx}" y="{cx - 46}" text-anchor="middle" fill="#f4a9ba" font-size="13">고위험 고객 분포</text>'
-              f'<text x="{cx}" y="{cx - 12}" text-anchor="middle" fill="#fff" font-size="24" font-weight="800">{esc(labels[top])}</text>'
-              f'<text x="{cx}" y="{cx + 36}" text-anchor="middle" fill="#fff" font-size="44" font-weight="800">{counts[top]:,}'
+    center = (f'<text x="{cx}" y="{cx - 46}" text-anchor="middle" style="fill:var(--acc)" font-size="13">고위험 고객 분포</text>'
+              f'<text x="{cx}" y="{cx - 12}" text-anchor="middle" style="fill:var(--txt)" font-size="24" font-weight="800">{esc(labels[top])}</text>'
+              f'<text x="{cx}" y="{cx + 36}" text-anchor="middle" style="fill:var(--txt)" font-size="44" font-weight="800">{counts[top]:,}'
               f'<tspan font-size="16"> 명</tspan></text>'
-              f'<text x="{cx}" y="{cx + 62}" text-anchor="middle" fill="#bda8ad" font-size="13">가장 큰 유형 · {counts[top] / total * 100:.1f}%</text>')
+              f'<text x="{cx}" y="{cx + 62}" text-anchor="middle" style="fill:var(--sub)" font-size="13">가장 큰 유형 · {counts[top] / total * 100:.1f}%</text>')
     return f'<svg viewBox="0 0 {size} {size}" width="100%" style="max-width:{size}px">{"".join(segs)}{center}</svg>'
 
 
@@ -248,7 +343,7 @@ def render_plan(res, d):
     for act in plan["actions"]:
         sid = act["solution_id"]
         key = f"{run_id}_{sid}"
-        with st.container(border=True):
+        with card():
             st.markdown(f"**{act['solution_name']}** `{sid}` · {type_label(act['type_id'], TYPE_NAMES)} · "
                         f"대상 **{act['target']}** · 비용 {won(act['offer_cost'])}" + (" · 📣 광고성" if act["message_kind"] == "ad" else ""))
             st.caption(f"선정 이유: {act['why']}")
@@ -294,10 +389,9 @@ def render_plan(res, d):
         st.write(f"모드 **{rt['mode']}** · 사용한 유형 {', '.join(rt['types_used'])}"
                  + (f" · {rt['gate_reason']}" if rt.get("gate_reason") else ""))
         if rt["eligible"]:
-            st.dataframe(pd.DataFrame(rt["eligible"])[["solution_id", "solution_name", "priority", "target", "offer_cost", "why"]],
-                         hide_index=True, width="stretch")
+            html_table(pd.DataFrame(rt["eligible"])[["solution_id", "solution_name", "priority", "target", "offer_cost", "why"]])
         if rt["excluded"]:
-            st.dataframe(pd.DataFrame(rt["excluded"]), hide_index=True, width="stretch")
+            html_table(pd.DataFrame(rt["excluded"]))
     if res.get("messages"):
         with st.expander("고객에게 가는 알림톡 (합본 미리보기)"):
             for m in res["messages"]:
@@ -314,18 +408,18 @@ def render_customer(sub_id):
     voc = d["recent_voc"]
     quote = voc[0]["summary_text"] if voc else "최근 접수된 문의가 없어요."
     top_name = type_label(types[0]["type_id"], TYPE_NAMES) if types else "유형 없음"
-    with st.container(border=True):
+    with card():
         st.markdown(f'<div class="persona"><span class="eyebrow" style="margin:0">PERSONA</span> '
                     f'<span class="chip o">{esc(top_name)}</span><q>{esc(quote)}</q>'
                     f'<span class="sub">{esc(cu.get("customer_name"))} · {esc(sb["subscription_id"])} · 최근 VOC 기준</span></div>',
                     unsafe_allow_html=True)
-    with st.container(border=True):
+    with card():
         name = cu.get("customer_name") or "?"
         st.markdown(
             f'<div style="display:flex;gap:16px;align-items:center"><div class="avatar">{esc(name[0])}</div>'
             f'<div style="flex:1"><div style="font-size:24px;font-weight:800">{esc(name)}</div>'
             f'<div class="sub" style="margin:0">{esc(sb["subscription_id"])} · {esc(cu.get("age_group"))} · {esc(cu.get("region_sido"))}</div></div>'
-            f'<div style="text-align:right"><small style="color:rgba(246,238,240,.6)">30일 내 이탈 위험도</small>'
+            f'<div style="text-align:right"><small style="color:var(--sub)">30일 내 이탈 위험도</small>'
             f'<div class="big">{round(pr["churn_probability"] * 100)}%</div></div></div>'
             f'<div class="track" style="margin:14px 0"><div class="fill" style="width:{pr["churn_probability"] * 100:.0f}%"></div></div>'
             f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">'
@@ -339,7 +433,7 @@ def render_customer(sub_id):
                 for t in types) + '</div>', unsafe_allow_html=True)
 
     shap_col, ai_col = st.columns([1, 1])
-    with shap_col, st.container(border=True):
+    with shap_col, card():
         st.markdown("**판단 근거 · SHAP**")
         feats = [(t["type_id"], f) for t in types for f in (t.get("top_features") or [])]
         mx = max([abs(f.get("shap") or 0) for _, f in feats] or [1])
@@ -348,9 +442,8 @@ def render_customer(sub_id):
                     unsafe_allow_html=True)
         if voc:
             st.markdown("**최근 VOC**")
-            st.dataframe(pd.DataFrame(voc).rename(columns={"contact_date": "접수일", "category": "분류", "summary_text": "요약"}),
-                         hide_index=True, width="stretch")
-    with ai_col, st.container(border=True):
+            html_table(pd.DataFrame(voc).rename(columns={"contact_date": "접수일", "category": "분류", "summary_text": "요약"}))
+    with ai_col, card():
         plans = st.session_state.setdefault("plans", {})
         st.markdown("**AI 추천 솔루션**")
         p1, p2 = st.columns(2)
@@ -379,10 +472,9 @@ def render_customer(sub_id):
                 if r:
                     st.success(r["note"])
     with st.expander("계산된 특징(features) · 조치 이력"):
-        st.json(ft, expanded=False)
+        pre(ft)
         if d["actions"]:
-            st.dataframe(pd.DataFrame(d["actions"])[["action_id", "created_at", "solution_id", "target", "status", "message_text"]],
-                         hide_index=True, width="stretch")
+            html_table(pd.DataFrame(d["actions"])[["action_id", "created_at", "solution_id", "target", "status", "message_text"]])
 
 
 with tab_care:
@@ -392,7 +484,7 @@ with tab_care:
     head("CUSTOMER CARE", "고객별 DCX 리포트 · 원스톱 조치")
     left, right = st.columns([1, 3], gap="large")
     with left:
-        with st.container(border=True):
+        with card():
             risk = st.segmented_control("위험도", ["전체", "HIGH", "MID", "LOW"], default="전체", label_visibility="collapsed")
             q = st.text_input("검색", placeholder="이름 · 고객번호 · 구독 ID", label_visibility="collapsed")
             params = {"limit": 60}
@@ -434,17 +526,17 @@ with tab_prod:
         lg = "".join(f'<span style="margin-right:16px;font-size:13px"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;'
                      f'background:{shade[i % 6]};margin-right:6px"></i>{esc(PRODUCT_LABEL.get(n, n))} <b>{prods[n]["n"] / tot * 100:.0f}%</b></span>'
                      for i, n in enumerate(order))
-        with st.container(border=True):
+        with card():
             st.markdown(f'<b>구독 점유율</b><div class="share">{seg}</div>{lg}', unsafe_allow_html=True)
         for row in [order[i:i + 3] for i in range(0, len(order), 3)]:
             cols = st.columns(3)
             for col, n in zip(cols, row):
                 p, o = prods[n], ovp.get(n, {})
-                with col, st.container(border=True):
+                with col, card():
                     hi, mid = (o.get("high", 0) / p["n"] * 100 if p["n"] else 0), (o.get("mid", 0) / p["n"] * 100 if p["n"] else 0)
                     months = "".join(f'<div style="display:flex;justify-content:space-between;font-size:13px;margin:4px 0">'
-                                     f'<span style="color:rgba(246,238,240,.6)">{esc(m["m"])}</span><span>신규 <b>{m["new"]}명</b></span>'
-                                     f'<span style="color:#f4a9ba">해지문의 <b>{m["cancel_voc"]}건</b></span></div>' for m in p["months"])
+                                     f'<span style="color:var(--sub)">{esc(m["m"])}</span><span>신규 <b>{m["new"]}명</b></span>'
+                                     f'<span style="color:var(--acc)">해지문의 <b>{m["cancel_voc"]}건</b></span></div>' for m in p["months"])
                     tt = bar_rows([(f"{t + 1}. {TYPE_NAMES.get(f'T{t + 1:02d}', '')}", f"{s}%", s / 100) for t, s in p["top_types"]])
                     mxk = max([c for _, c in p["kw"]] or [1])
                     kws = "".join(f'<span class="kw" style="font-size:{12 + 12 * c / mxk:.0f}px;opacity:{.55 + .45 * c / mxk:.2f}">{esc(k)}</span>'
@@ -453,10 +545,10 @@ with tab_prod:
                         f'<div style="display:flex;gap:14px;align-items:center"><img class="pimg" src="{img_uri(PRODUCT_IMG.get(n, ""))}">'
                         f'<div style="flex:1"><b style="font-size:22px">{esc(PRODUCT_LABEL.get(n, n))}</b>'
                         f'<div class="sub" style="margin:0">구독 {p["n"]:,}건 · 점유율</div></div>'
-                        f'<b style="font-size:22px;color:#f4a9ba">{p["n"] / tot * 100:.0f}%</b></div>'
+                        f'<b style="font-size:22px;color:var(--acc)">{p["n"] / tot * 100:.0f}%</b></div>'
                         f'<div class="track" style="margin:12px 0 4px;display:flex"><div style="width:{hi:.1f}%;background:#8f3447"></div>'
                         f'<div style="width:{mid:.1f}%;background:#d98a9a"></div></div>'
-                        f'<small style="color:rgba(246,238,240,.6)">위험 HIGH {hi:.0f}% · MID {mid:.0f}% · 방문 정시율 {p["ontime_pct"]}% · 재방문 {p["revisit_pct"]}%</small>'
+                        f'<small style="color:var(--sub)">위험 HIGH {hi:.0f}% · MID {mid:.0f}% · 방문 정시율 {p["ontime_pct"]}% · 재방문 {p["revisit_pct"]}%</small>'
                         f'<div style="margin-top:14px;font-size:13px;font-weight:700">최근 3개월 신규 구독 / 해지 문의(VOC)</div>{months}'
                         f'<div style="margin-top:12px;font-size:13px;font-weight:700">주요 이탈 유형</div>{tt}'
                         f'<div style="margin-top:12px;font-size:13px;font-weight:700">VOC 문의 유형 (크기 = 접수 건수)</div><div>{kws}</div>',
@@ -473,10 +565,9 @@ with tab_team:
         dept = st.segmented_control("부서", DEPT_TABS, default=DEPT_TABS[0], label_visibility="collapsed") or DEPT_TABS[0]
         blk = team["dept"][DEPT_TABS.index(dept)]
         g = blk["g1"]
-        with st.container(border=True):
+        with card():
             st.markdown(f"**{esc(dept)} · 맞춤 분석**  ·  {esc(g['t'])}")
-            st.line_chart(pd.DataFrame({g["a"]: g["A"], g["b"]: g["B"]}, index=team["months"]),
-                          color=["#f4a9ba", "#8f3447"])
+            st.markdown(dual_line(team["months"], g["A"], g["B"], g["a"], g["b"]), unsafe_allow_html=True)
         ai_tag = " · ✨ AI 해석" if blk.get("ai") else ""
         st.markdown('<div class="insights"><div class="e">KEY INSIGHTS · 3줄 요약' + ai_tag + '</div>' + "".join(
             f'<div class="r"><span class="n">{i}</span><span>{md_bold(line)}</span></div>' for i, line in enumerate(blk["ins"], 1))
@@ -505,30 +596,30 @@ with tab_survey:
         c = st.columns(4)
         for col, (k, v, hero) in zip(c, [("발송", f"{eda['sent']:,}", False), ("응답", f"{eda['responded']:,}", False),
                                          ("응답률", f"{eda['response_rate']}%", True), ("완료율", f"{eda['completion_rate']}%", False)]):
-            bg = "linear-gradient(135deg,#fbd9e1,#f4a9ba)" if hero else "rgba(0,0,0,.28)"
-            fg = "#2a1018" if hero else "#f6eef0"
+            bg = "linear-gradient(135deg,#fbd9e1,#f4a9ba)" if hero else "var(--inner)"
+            fg = "#2a1018" if hero else "var(--txt)"
             col.markdown(f'<div class="kv" style="background:{bg};color:{fg}"><small style="color:{fg}">{k}</small>'
                          f'<b style="font-size:26px">{v}</b></div>', unsafe_allow_html=True)
         a, b, c3 = st.columns(3)
         for col, key, title in ((a, "issues", "불편했던 점"), (b, "wanted", "원하는 조치"), (c3, "newsol", "새 솔루션 아이디어")):
-            with col, st.container(border=True):
+            with col, card():
                 items = sorted(eda[key]["items"], key=lambda x: -x["n"])
                 mx = items[0]["pct"] if items else 1
                 st.markdown(f"**{title}** · 응답 {eda[key]['n']:,}", unsafe_allow_html=True)
                 st.markdown(bar_rows([(x["label"], f"{x['pct']}% · {x['n']}명", x["pct"] / mx) for x in items[:8]]), unsafe_allow_html=True)
         d1, d2 = st.columns(2)
-        with d1, st.container(border=True):
+        with d1, card():
             st.markdown("**설문 종류별 응답률**")
             st.markdown(bar_rows([(x["label"], f"{x['pct']}% ({x['resp']}/{x['n']})", x["pct"] / 40) for x in eda["by_type"]]),
                         unsafe_allow_html=True)
             st.markdown("**현재 상태**")
             st.markdown(bar_rows([(x["label"], f"{x['pct']}% · {x['n']}명", x["pct"] / 40) for x in eda["status"]["items"]]),
                         unsafe_allow_html=True)
-        with d2, st.container(border=True):
+        with d2, card():
             st.markdown("**자주 나온 주관식 응답**")
             for i, x in enumerate(eda["open_texts"], 1):
                 cls = ' class="hl"' if i <= 3 else ""
-                st.markdown(f'<div{cls} style="padding:8px 12px;margin:4px 0;font-size:{15 if i <= 3 else 13}px"><b style="color:#f4a9ba">{i}</b> '
+                st.markdown(f'<div{cls} style="padding:8px 12px;margin:4px 0;font-size:{15 if i <= 3 else 13}px"><b style="color:var(--acc)">{i}</b> '
                             f'&nbsp; {esc(x["text"])} <span style="float:right;opacity:.7">{x["n"]}건</span></div>', unsafe_allow_html=True)
     else:
         st.info("설문 데이터가 아직 적재되지 않았어요.")
@@ -546,7 +637,7 @@ with tab_new:
         if not shown:
             st.info("해당 상태의 후보가 없어요. 후보는 backend 에서 `python scripts/make_candidates.py --in data_in/data_out --provider mock` 으로 만들 수 있어요.")
         for p in shown:
-            with st.container(border=True):
+            with card():
                 st.markdown(f'<span class="chip">{esc(p["kind"])}</span> <b style="font-size:20px">{esc(p["title"])}</b>', unsafe_allow_html=True)
                 st.caption(f"근거 {p['support']}건({pct(p['share'], 0)}) · {p['votes']}/{p['n_runs']}회 등장 · "
                            f"가장 가까운 기존 유형 {type_label(p.get('closest_type_id'), TYPE_NAMES)} · {p['description']}")
@@ -570,8 +661,8 @@ with tab_new:
         if status == "채택" and props["new_solutions"]:
             st.markdown("#### 채택된 신규 솔루션 활성화")
             for s_ in props["new_solutions"]:
-                with st.container(border=True):
-                    st.json(s_, expanded=False)
+                with card():
+                    pre(s_)
                     sid = s_.get("solution_id")
                     if sid and s_.get("active_yn") != "Y":
                         cost = st.number_input("1회 오퍼 비용(혜택제안만 필수)", min_value=0, step=1000, key=f"cost_{sid}")
@@ -596,7 +687,7 @@ with tab_log:
         flt = st.segmented_control("필터", ["전체", "알림톡 발송", "부서 전달", "반려"], default="전체", label_visibility="collapsed",
                                    format_func=lambda k: f"{k} {len(acts) if k == '전체' else cnt[k]}건") or "전체"
         rows = [a for a in acts if flt == "전체" or a["_k"] == flt]
-        with st.container(border=True):
+        with card():
             if not rows:
                 st.caption("아직 기록된 조치가 없어요. 고객 케어 탭에서 조치안을 승인해 보세요.")
             else:
