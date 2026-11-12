@@ -86,18 +86,22 @@ LG전자 AX School AI 엔지니어 과정 Build2 (6인 팀, 2026.09.21 ~ 10.13).
 │   ├── data_in/      합성 데이터 CSV 15개 (약 50MB)
 │   ├── config.py     설정(.env 읽기)
 │   └── .env.example
-├── model/            Agent 엔진 원본 (팀원 제공, 수정 없이 보관 — 새 버전이 오면 이 폴더만 교체)
-│   ├── agent/        rules(Rule Engine) · llm · validation(검증기·폴백) · service
+├── model/            AI 파이프라인 전체: 데이터 생성 → 예측 모델 → Agent (팀원 제공 코드, 새 버전이 오면 해당 폴더만 교체)
+│   ├── datagen/      합성 데이터 생성기 (모집단 30,000 구독, 이벤트, 라벨, 검증, 시연 12건)
+│   ├── churn_model/  이탈 예측 모델: 피처 → XGBoost → SHAP 이탈 유형 → 5-겹 교차 적합 예측 (결과 리포트 out/*.md)
+│   ├── agent/        Agent 엔진: rules(Rule Engine) · llm · validation(검증기·폴백) · service
 │   ├── feedback/     설문 시뮬레이터 · 신규 유형 후보 에이전트
 │   ├── data/         솔루션 카탈로그 · 피처 사전 · 부서 목록 · 데모 입력
 │   ├── sql/          DDL · 카탈로그 시드 · 무결성 검사
+│   ├── scripts/      카탈로그 생성 · 샘플 적재 · LLM 측정 · PostgreSQL 시험
+│   ├── tests/        Agent 테스트 (datagen/tests, churn_model/tests 는 각 폴더 안)
 │   └── config.yaml   규칙 수치 · LLM 모델명
-└── docs/             기획서 · 스키마 설계서 · Agent 설계서 · 평가 및 한계 · 제안서(pptx)
+└── docs/             대표 문서 4종 · 제안서(pptx) · design/(상세 설계 정본, ERD) · images/(화면 캡처)
 ```
 
 의존 방향은 `front → backend → model` 한 방향입니다. `backend/api/engine.py` 가 `model/` 의 엔진을 불러와 우리 DB·화면 응답 형태에 맞춥니다.
 
-> 이탈 **예측 모델(XGBoost) 학습 코드와 가중치는 이 저장소에 없습니다.** 예측 결과(`churn_prediction.csv`, `churn_prediction_type.csv`)만 CSV 로 받아 DB 에 적재합니다.
+> 백엔드에 적재하는 CSV(`backend/data_in/data_out/`)는 `model/datagen` 이 만든 합성 데이터와 `model/churn_model` 이 만든 예측 결과(`churn_prediction*.csv`)입니다. 학습된 모델 파일(`xgb_model.json`)은 용량·재현성 때문에 저장소에 없고, 아래 명령으로 다시 만듭니다.
 
 ## 2. 시스템 흐름
 
@@ -163,6 +167,38 @@ streamlit run app.py                    # http://localhost:8501
 ```
 
 백엔드 주소가 다르면 사이드바의 "API 주소"를 바꾸거나 환경변수 `API_URL` 을 지정하세요. 서버가 꺼져 있으면 화면이 안내 메시지를 띄우고 멈춥니다.
+
+### 3-3. 데이터·예측·Agent 를 처음부터 다시 만들기 (model)
+
+저장소에 있는 CSV 를 쓰면 이 단계는 필요 없습니다. 합성 데이터부터 예측까지 다시 만들 때만 따라 하세요. 시드는 42 로 고정되어 같은 결과가 나옵니다. 모든 명령은 `model/` 에서 실행합니다.
+
+```bash
+cd model
+pip install -r requirements.txt                              # Agent
+pip install -r datagen/requirements.txt -r churn_model/requirements.txt
+
+# ① 합성 데이터 (30,000 구독)
+python -m datagen.config                                     # 설정 검증과 기대 규모
+export DATABASE_URL=postgresql+psycopg2://USER@HOST/DB       # 비밀번호는 환경변수/.pgpass 로, 코드에 쓰지 않음
+python -m datagen.load_pg --url "$DATABASE_URL"              # 생성 → 적재 → 무결성 검사 → 임시 예측(stub)
+
+# ② 예측 모델 (XGBoost + SHAP 유형)
+python -m churn_model.feature_report --data data_out         # M1 피처 점검
+python -m churn_model.train --data data_out                  # M2 학습·평가 (out/m2_report.md)
+python -m churn_model.shap_types --data data_out             # M3 SHAP 유형 산출·복원 검증 (out/m3_report.md)
+python -m churn_model.run_m4 --data data_out --url "$DATABASE_URL"   # M4 5-겹 교차 적합 → 예측 저장 → DB 교체
+
+# ③ Agent 단독 실행 (백엔드 없이)
+python -m agent.cli run S000101                              # mock LLM 으로 데모 1건
+python -m datagen.make_demo && python -m datagen.run_demo_agent --url "$DATABASE_URL"   # 시연 12건
+uvicorn agent.api:create_app --factory                       # Agent 단독 REST API (/docs)
+```
+
+- 입력 Parquet/CSV 는 `datagen` 이 만듭니다. 정답 라벨(`synth_churn_label`)은 학습 정답으로만, 정답 유형(`synth_truth_type`)은 복원 검증에만 씁니다.
+- 임시 예측(`model_version='stub-gen'`)은 학습된 모델 결과가 아니라 생성 확률로 채운 값입니다.
+- 새 이탈 유형은 모델 재학습 전에는 Agent 가 쓰지 않습니다. 후보를 채택해도 유형과 비활성 솔루션만 등록됩니다.
+- 신규 유형 후보는 기존 유형의 재서술일 수 있어, 관리자가 가장 가까운 기존 유형(`closest_type_id`)과 차이 설명(`difference`)을 보고 판단합니다. 승인 연동 함수는 `model/feedback/approve.py` 입니다.
+- 생성 데이터와 학습 결과는 저장소에 없습니다(`model/.gitignore`). 리포트(`out/*.md`)만 남깁니다.
 
 ## 4. 설정
 
@@ -265,7 +301,14 @@ streamlit run app.py                    # http://localhost:8501
 
 ## 9. 테스트
 
-테스트는 테이블을 지우고 다시 만들기 때문에 **이름에 `test` 가 들어간 PostgreSQL DB** 에서만 실행됩니다.
+| 대상 | 명령 | 비고 |
+|---|---|---|
+| Agent 엔진 | `cd model && python -m pytest -q tests` | PostgreSQL 이 필요한 16건은 건너뜀 |
+| 예측 모델 | `cd model && python -m pytest -q churn_model/tests` | `xgboost`, `shap` 필요 |
+| 데이터 생성기 | `cd model && python -m pytest -q datagen/tests` | 약 40~100초. Parquet 테스트는 `pyarrow` 필요 |
+| 백엔드 | `cd backend && python -m pytest tests/test_all.py -q` | **PostgreSQL 필수** (아래) |
+
+백엔드 테스트는 테이블을 지우고 다시 만들기 때문에 **이름에 `test` 가 들어간 PostgreSQL DB** 에서만 실행됩니다.
 
 ```bash
 # PowerShell
@@ -274,7 +317,9 @@ cd backend
 python -m pytest tests/test_all.py -q          # tests/legacy 는 실행하지 않음
 ```
 
-Linux/Mac 은 `bash scripts/pg_test.sh` 가 임시 PostgreSQL 을 띄워 시험하고 정리합니다.
+Linux/Mac 은 `bash scripts/pg_test.sh` 가 임시 PostgreSQL 을 띄워 시험하고 정리합니다. `model/` 의 PostgreSQL 시험은 `bash model/scripts/pg_test.sh` 입니다.
+
+마지막 확인(2026-11-12, Windows): Agent 476 통과·16 건너뜀, 예측 모델 20 통과·2 건너뜀, 데이터 생성기 48 통과·1 건너뜀·1 실패(이 PC 에서 `pyarrow` DLL 이 정책으로 차단되어 Parquet 저장 테스트만 실패, 코드 문제 아님). 백엔드 테스트는 PostgreSQL 이 없어 실행하지 못했습니다.
 
 ## 10. 문서 (docs)
 
@@ -286,7 +331,16 @@ Linux/Mac 은 `bash scripts/pg_test.sh` 가 임시 PostgreSQL 을 띄워 시험�
 | [04 평가 및 한계](docs/04_평가_및_한계.md) | 모델·유형·Agent·피드백 루프 결과와 한계 |
 | 제안서 (pptx) | `docs/최종_CareBetterLG_구독케어_이탈방지_에이전트_제안서.pptx` — 문제 정의, DCX 과정(리뷰 수집 → 이탈 유형 → 솔루션 도출), Agent 워크플로우와 시연 화면, Performance Tracker |
 
-위 4개 문서는 대표본이며, 정본(`agent_design.md`, `data_schema_design.md`, `churn_types_10.md`, `overall_pipeline.md` 등)은 이 저장소에 포함되어 있지 않습니다.
+위 4개 문서는 대표본이고, 상세 설계 정본은 [`docs/design/`](docs/design/) 에 있습니다. 먼저 `progress_summary.md` 를 읽으세요.
+
+| 주제 | 파일 (`docs/design/`) |
+|---|---|
+| 이탈 유형 정의 · 전체 파이프라인 | `churn_types_10.md`, `overall_pipeline.md` (`.mmd`, `.png`) |
+| 스키마 상세 / ERD | `data_schema_design.md`, `erd_schema.png` (`.svg`, `.mmd`) |
+| Agent 입출력·Rule Engine·코드 설계 | `agent_design.md`, `agent_code_design.md` |
+| 프롬프트 / 검증기 / 테스트 케이스 | `agent_prompt_design.md`, `agent_validator_design.md`, `agent_test_cases.md` |
+| 솔루션 카탈로그 · 설문 시뮬레이터 | `solution_catalog_design.md`, `survey_simulator_design.md`, `survey_form_v2.html` |
+| 구현 점검 / 진행 현황 | `verification_report.md`, `progress_summary.md` |
 
 ## 11. 알려진 한계와 주의
 
@@ -296,4 +350,4 @@ Linux/Mac 은 `bash scripts/pg_test.sh` 가 임시 PostgreSQL 을 띄워 시험�
 - **인증이 없습니다.** 승인·반려·채택 API 는 누구나 호출할 수 있으므로 팀 서버에 올릴 때 접근 제한이 필요합니다.
 - **`db.load --reset`** 은 실행 이력과 신규 유형 승인 기록을 지웁니다.
 - `.env` 에는 API 키가 들어가므로 절대 커밋하지 마세요(`.gitignore` 에 포함).
-- 실제 발송, 운영 수준 화면, 예측 모델 학습·서빙은 범위 밖입니다.
+- 실제 발송, 운영 수준 화면, 예측 모델 서빙(실시간 API)은 범위 밖입니다. 모델은 배치로 예측 결과를 만들어 DB 에 넣는 방식입니다.

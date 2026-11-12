@@ -1,6 +1,6 @@
 """페이지 M1: 피처 생성 build_features(tables, cfg) -> DataFrame (구독 1행, 피처 열).
 
-- 피처 정의는 data_schema_design.md §5와 churn_agent/data/feature_dictionary.json을 따른다(유형 그룹 T01~T10 + 컨텍스트).
+- 피처 정의는 data_schema_design.md §5와 model/data/feature_dictionary.json을 따른다(유형 그룹 T01~T10 + 컨텍스트).
 - 모든 이벤트는 '기준일 이하'만 사용한다(누수 방지). 라벨·정답 유형 테이블은 입력으로 받지 않는다.
 - 횟수 피처는 원 횟수로 둔다(월평균 보정 대신 tenure_months를 컨텍스트로 함께 입력) [제안].
 - 값이 없을 때: 횟수·합계는 0, 평균·경과일·비율은 NaN(XGBoost가 결측으로 처리). 케어가 없는 구독의 방문 신호는 NaN/0.
@@ -13,7 +13,7 @@ import numpy as np, pandas as pd
 import yaml
 
 HERE = Path(__file__).resolve().parent
-DICT = HERE.parent / "churn_agent" / "data" / "feature_dictionary.json"
+DICT = HERE.parent / "data" / "feature_dictionary.json"
 CAT_COLS = {"product_category": ["의류관리기", "건조기", "냉장고", "세탁기", "에어컨", "정수기"], "care_type": ["방문관리", "자가관리", "없음"]}
 
 

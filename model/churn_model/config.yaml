@@ -1,7 +1,7 @@
 # 모델 단계 설정 (가설 기반 synthetic data 위에서 파이프라인을 검증하기 위한 값)
 features:
   as_of_date: "2026-09-30"
-  short_care_minutes: 20            # '짧은 케어' 기준(분). churn_agent/config.yaml facts.short_care_minutes와 같은 값이어야 함
+  short_care_minutes: 20            # '짧은 케어' 기준(분). model/config.yaml facts.short_care_minutes와 같은 값이어야 함
   post_care_as_days: 14             # 케어 후 A/S 연결 윈도우(일)
   visit_interval_months: {의류관리기: 12, 건조기: 12, 냉장고: 12, 세탁기: 12, 에어컨: 12, 정수기: 4}   # product_profile과 같은 값
   usage_weeks: 12

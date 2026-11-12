@@ -1,3 +1,4 @@
+import json
 import pytest
 from fastapi.testclient import TestClient
 from agent.api import create_app
@@ -40,9 +41,21 @@ def test_customer_name_never_reaches_llm(catalog):
     AgentService(load_config(), catalog, Spy(), MemoryRepo()).run(inp())
     assert seen and not any("박서연" in s or "C000412" in s for s in seen)
 
-def test_unmapped_dept_reported(svc):
+def test_sales_dept_is_mapped(svc):
+    """영업관리팀은 부서 마스터(9개 칩)에서 SALES 로 매핑된다."""
     ai = base_input([("T08", 1.0)], facts={"sales_voc_cnt_30d": 2}); r = svc.run(ai)
-    assert r["forward"] and "영업관리팀" in r["forward"]["unmapped"]
+    assert r["forward"] and "SALES" in r["forward"]["departments"] and "영업관리팀" not in r["forward"]["unmapped"]
+
+
+def test_unmapped_dept_reported(svc):
+    """부서 마스터에 없는 이름은 unmapped 로 알린다."""
+    from agent.config import ROOT as AROOT
+    from agent.forward import build_forward
+    ai = base_input([("T08", 1.0)], facts={"sales_voc_cnt_30d": 2}); r = svc.run(ai)
+    by_id = {k: dict(v, forward_dept="없는부서팀") for k, v in svc.by_id.items()}
+    dep = json.loads((AROOT / "data" / "departments.json").read_text(encoding="utf-8"))
+    out = build_forward(ai, r["selected"], by_id, dep)
+    assert out and "없는부서팀" in out["unmapped"]
 
 def test_forward_confirm_logs_each_item_with_edit_flag(svc):
     r = svc.run(inp()); fw = r["forward"]; sids = [i["solution_id"] for i in fw["items"]]
@@ -66,7 +79,7 @@ def test_pure_internal_item_rejected_by_decision_endpoint(svc):
 
 def test_api_forward_and_departments(catalog):
     c = TestClient(create_app(AgentService(load_config(), catalog, RuleBasedMock(), MemoryRepo()), DemoSource()))
-    assert len(c.get("/departments").json()) == 8
+    assert len(c.get("/departments").json()) == 9
     r = c.post("/agent/run-input", json=inp()).json()
     assert r["forward"]["items"]
     body = dict(request_id=r["request_id"], subscription_id="S1", solution_ids=[i["solution_id"] for i in r["forward"]["items"]],

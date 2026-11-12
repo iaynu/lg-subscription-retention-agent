@@ -1,12 +1,12 @@
 """측정 스크립트: mock으로 끝까지 돌고, 결과 파일에 키 모양 문자열이 없으며, 오류 문자열의 키 조각을 지운다."""
-import json, subprocess, sys
+import json, os, subprocess, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_measure_runs_with_mock_and_scrubs(tmp_path):
     inp = ROOT / "data" / "demo_inputs_12.json"
-    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "measure_llm.py"), "--inputs", str(inp), "--provider", "mock", "--repeats", "1", "--out", str(tmp_path)], capture_output=True, text=True)
+    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "measure_llm.py"), "--inputs", str(inp), "--provider", "mock", "--repeats", "1", "--out", str(tmp_path)], capture_output=True, text=True, encoding="utf-8", env={**os.environ, "PYTHONIOENCODING": "utf-8"})
     assert r.returncode == 0, r.stderr
     rows = json.loads((tmp_path / "llm_measure_mock.json").read_text(encoding="utf-8")); assert len(rows) == 12 and all(x["outcome"] != "error" for x in rows)
     assert ("s" + "k-") not in (tmp_path / "llm_measure_mock.md").read_text(encoding="utf-8")
@@ -19,7 +19,7 @@ def test_scrub_removes_key_fragments():
 
 def test_no_openai_call_without_key(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "measure_llm.py"), "--inputs", str(ROOT / "data" / "demo_inputs_12.json"), "--provider", "openai", "--out", str(tmp_path)], capture_output=True, text=True)
+    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "measure_llm.py"), "--inputs", str(ROOT / "data" / "demo_inputs_12.json"), "--provider", "openai", "--out", str(tmp_path)], capture_output=True, text=True, encoding="utf-8", env={**os.environ, "PYTHONIOENCODING": "utf-8"})
     assert r.returncode == 2 and "OPENAI_API_KEY" in r.stdout
 
 

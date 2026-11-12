@@ -1,7 +1,7 @@
 """페이지 5-2(c): PostgreSQL 적재(COPY) + 무결성 검사 + 임시 예측 적재.
 
 load_all(url_or_conn, cfg, tables, reset=True, stub=True) -> dict(rows, integrity, ...)
-- DDL·시드는 churn_agent/sql/ 것을 쓴다(reset=True면 public 스키마를 비우고 새로 만든다).
+- DDL·시드는 model/sql/ 것을 쓴다(reset=True면 public 스키마를 비우고 새로 만든다).
 - product_profile은 config의 products에서 넣는다. 나머지는 OUTPUT_TABLES 순서(부모→자식)로 COPY.
 - GENERATED ALWAYS 식별자 컬럼은 DataFrame에 없으므로 COPY 대상에서 자연히 빠진다.
 - 접속 문자열은 호출자가 넘긴다(환경변수 TEST_DATABASE_URL 등). 비밀번호를 코드·설정 파일에 쓰지 않는다.
@@ -15,7 +15,7 @@ from .generate import OUTPUT_TABLES
 from .export import clean
 from .stub_predictions import build_stub_predictions
 
-SQL_DIR = Path(__file__).resolve().parents[1] / "churn_agent" / "sql"
+SQL_DIR = Path(__file__).resolve().parents[1] / "sql"
 
 
 def _conn(url):

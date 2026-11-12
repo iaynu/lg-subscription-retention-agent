@@ -278,7 +278,7 @@ CREATE TABLE action_log (                                       -- 조치 시뮬
     internal_memo       VARCHAR(1000),                          -- 내부 전달서 본문 (internal_forward_yn='Y'인 솔루션)
     message_source      VARCHAR(10) CHECK (message_source IN ('llm', 'template')),
     decision_note       VARCHAR(300),                           -- 상담자 메모(반려 사유 등)
-    forward_depts       VARCHAR(100),                           -- 내부 전달 수신 부서 코드(쉼표 구분, 예: CS,PRICING). 부서 마스터는 churn_agent/data/departments.json
+    forward_depts       VARCHAR(100),                           -- 내부 전달 수신 부서 코드(쉼표 구분, 예: CS,PRICING). 부서 마스터는 model/data/departments.json
     memo_edited_yn      CHAR(1)     NOT NULL DEFAULT 'N' CHECK (memo_edited_yn IN ('Y', 'N')),  -- 상담자가 AI 초안을 고쳐 전달했는지
     offer_cost          NUMERIC(10,0) NOT NULL DEFAULT 0,
     risk_prob_at_action NUMERIC(5,4),

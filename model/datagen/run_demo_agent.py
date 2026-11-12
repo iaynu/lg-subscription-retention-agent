@@ -1,14 +1,14 @@
 """페이지 5-2(d): 적재된 DB에서 시연 12건을 Agent(모의 LLM, SqlSource/SqlRepo)에 실제로 돌려 결과표를 만든다.
 
 python -m datagen.run_demo_agent --url "$DATABASE_URL" [--cases datagen/out/demo_cases.csv] [--out datagen/out/demo_agent_results.md]
-churn_agent 패키지 경로를 sys.path에 넣어 쓴다. 예측은 임시(stub-gen)이므로 '파이프라인이 끝까지 도는지'만 본다.
+agent 패키지 경로(model/)를 sys.path에 넣어 쓴다. 예측은 임시(stub-gen)이므로 '파이프라인이 끝까지 도는지'만 본다.
 """
 from __future__ import annotations
 import sys, argparse
 from pathlib import Path
 import pandas as pd
 
-AGENT = Path(__file__).resolve().parents[1] / "churn_agent"
+AGENT = Path(__file__).resolve().parents[1]
 
 
 def run(url: str, cases: str, out: str) -> pd.DataFrame:
