@@ -49,7 +49,7 @@ def build_usage(cfg, pop) -> pd.DataFrame:
     login = np.where(installed[:, None], r.binomial(7, p_login), 0)
     # 가입 이전 주는 행을 만들지 않는다(주의 마지막 날 ≥ 시작일인 주만)
     start = np.array(sub["start_date"], dtype="datetime64[D]"); wk = np.array(weeks, dtype="datetime64[D]")
-    valid = (wk[None, :] + 6) >= start[:, None]
+    valid = (wk[None, :] + np.timedelta64(6, "D")) >= start[:, None]
     ii, jj = np.nonzero(valid)
     return pd.DataFrame({"subscription_id": sub["subscription_id"].to_numpy()[ii], "week_start_date": np.array(weeks, dtype=object)[jj],
                          "run_count": counts[ii, jj].astype("int16"), "run_minutes": minutes[ii, jj], "app_login_days": login[ii, jj].astype("int8")})
@@ -66,7 +66,7 @@ def build_payment(cfg, pop) -> pd.DataFrame:
     r = _rng(int(cfg["run"]["seed"]), 6); ev = cfg["events"]; today = as_of(cfg)
     sub = pop["subscription"]; n = len(sub); M = int(ev["payment_months"]); months = _months(today, M)
     fee = sub["monthly_fee"].to_numpy().astype(float); amt = sub["promo_discount_amount"].to_numpy()
-    pend = np.array([np.datetime64(d, "D") if d is not None else np.datetime64("NaT") for d in sub["promo_end_date"]])
+    pend = np.array([np.datetime64(d, "D") if d is not None else np.datetime64("NaT", "D") for d in sub["promo_end_date"]])
     mon = np.array(months, dtype="datetime64[D]")
     billed = np.tile(fee[:, None], (1, M))
     t01 = pop["truth_type"].query("type_id == 'T01'").set_index("subscription_id")["activation_strength"]
