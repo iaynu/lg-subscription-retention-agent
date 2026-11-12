@@ -1,0 +1,7 @@
+numpy
+pandas
+pyarrow
+pyyaml
+psycopg2-binary
+sqlalchemy>=2
+pytest

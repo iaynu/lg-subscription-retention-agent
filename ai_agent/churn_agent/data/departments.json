@@ -1,0 +1,9 @@
+{"_note": "협업 부서 마스터. 팀원 목업(협업 부서 전달 화면)의 8개 칩 기준 [제안]. mapping은 카탈로그 forward_dept 문자열 → 기본 수신 부서 코드(상담자가 화면에서 바꿀 수 있음). 매핑되지 않는 이름은 forward.unmapped로 알린다.",
+ "departments": [
+  {"code": "CARE", "name": "케어서비스팀"}, {"code": "CS", "name": "고객센터(CS)"}, {"code": "QUALITY", "name": "제품기술·품질팀"},
+  {"code": "PARTS", "name": "부품·물류팀"}, {"code": "PRICING", "name": "요금·상품기획팀"}, {"code": "INSTALL", "name": "설치·이전센터"},
+  {"code": "APP", "name": "ThinQ 앱팀"}, {"code": "LEGAL", "name": "계약·법무팀"}],
+ "mapping": {"케어서비스운영팀": ["CARE"], "고객센터 전담팀": ["CS"], "품질보증팀": ["QUALITY"], "A/S 운영팀": ["QUALITY"], "A/S 부서": ["QUALITY"], "새 담당 매니저": ["CARE"],
+             "물류·A/S 부서": ["PARTS"], "구독상품기획팀": ["PRICING"], "제품기획팀": ["PRICING"]},
+ "deadline_business_days": 3
+}

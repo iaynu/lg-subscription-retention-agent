@@ -1,0 +1,37 @@
+# 모델 단계 설정 (가설 기반 synthetic data 위에서 파이프라인을 검증하기 위한 값)
+features:
+  as_of_date: "2026-09-30"
+  short_care_minutes: 20            # '짧은 케어' 기준(분). churn_agent/config.yaml facts.short_care_minutes와 같은 값이어야 함
+  post_care_as_days: 14             # 케어 후 A/S 연결 윈도우(일)
+  visit_interval_months: {의류관리기: 12, 건조기: 12, 냉장고: 12, 세탁기: 12, 에어컨: 12, 정수기: 4}   # product_profile과 같은 값
+  usage_weeks: 12
+  excluded: [region_changed_flag]   # 원천 컬럼(주소 변경 이력)이 스키마에 없어 만들 수 없는 피처
+
+model:
+  seed: 42
+  split: {test: 0.20, valid: 0.20}          # 학습 60 / 검증 20(조기 종료·보정) / 시험 20. 제품군×이탈 여부로 층화
+  xgb:
+    n_estimators: 800
+    learning_rate: 0.05
+    max_depth: 4
+    min_child_weight: 5
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 2.0
+    early_stopping_rounds: 50
+    eval_metric: aucpr
+  class_weight: sqrt                        # scale_pos_weight = (음성÷양성)^0.5. 'none'이면 가중 없음, 'full'이면 음성÷양성
+  calibrate: platt                          # 검증 구간 로짓으로 확률 보정(Platt). 'none'이면 보정 없음
+  top_percents: [5, 10, 20]                 # Recall/Precision@상위 N%
+  tenure_buckets: [12, 36]                  # 가입 기간(개월) 구간 경계: ≤12 / 12~36 / >36
+
+types:                                      # M3: SHAP → 유형 산출(방법 B) [가정 값은 결과를 보고 재확인]
+  share_min: 0.20                           # 양수 그룹 SHAP 합 대비 비중 하한
+  shap_min: 0.5                             # 그룹 SHAP 절대 하한(로그오즈)
+  max_types: 3
+  top_features_n: 3                         # 유형별 근거 피처 수
+
+scoring:                                    # M4: 전 구독 점수 산출·DB 반영
+  folds: 5                                  # 교차 적합(out-of-fold): 각 구독은 자기를 학습에 쓰지 않은 모델로 점수화
+  model_version: "xgb-oof-v1"
+  risk_split: {high: 0.10, mid: 0.10}       # 순위 상위 10% HIGH / 다음 10% MID / 나머지 LOW [확정]

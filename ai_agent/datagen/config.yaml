@@ -1,0 +1,173 @@
+# 더미 데이터 생성기 설정 (페이지 1). 출처: data_schema_design.md §6·§7. 모든 값은 가설 기반 synthetic data용.
+# 상태 표시: [확정] YJ가 확정 / [제안] Claude 제안 / [가정] 근거 약한 임시값 / [팀 결정 필요]
+run:
+  seed: 42                     # [확정] 같은 설정·시드면 항상 같은 데이터
+  n_subscriptions: 30000       # [확정 2026-10-08] 정상 24,000 / 유형 활성 6,000
+  as_of_date: "2026-09-30"     # [가정] 기준일. 모든 '최근 N일'은 이 날짜 기준
+  output_formats: [csv, parquet]   # [확정]
+  care_manager_count: 140      # [확정 2026-10-08] 방문관리 구독이 약 15,900건이라 120→140명(1인당 약 113건)
+
+population:
+  products:                    # 제품군 비중·요금·계약·점검주기. 비중 합 = 1
+    의류관리기: {weight: 0.222, structure: 구독형, fee_min: 28000, fee_max: 42000, contract_months: 60, visit_interval_months: 12, care_included_default: "N", base_fault_rate_monthly: 0.010, base_usage_per_week: 5.0}
+    건조기:     {weight: 0.179, structure: 구독형, fee_min: 30000, fee_max: 45000, contract_months: 72, visit_interval_months: 12, care_included_default: "N", base_fault_rate_monthly: 0.012, base_usage_per_week: 4.0}
+    냉장고:     {weight: 0.173, structure: 구독형, fee_min: 52000, fee_max: 78000, contract_months: 60, visit_interval_months: 12, care_included_default: "N", base_fault_rate_monthly: 0.008, base_usage_per_week: 7.0}
+    세탁기:     {weight: 0.156, structure: 구독형, fee_min: 33000, fee_max: 49000, contract_months: 72, visit_interval_months: 12, care_included_default: "N", base_fault_rate_monthly: 0.012, base_usage_per_week: 5.0}
+    에어컨:     {weight: 0.150, structure: 구독형, fee_min: 57000, fee_max: 85000, contract_months: 60, visit_interval_months: 12, care_included_default: "N", base_fault_rate_monthly: 0.010, base_usage_per_week: 3.0}
+    정수기:     {weight: 0.120, structure: 렌탈형, fee_min: 31000, fee_max: 46000, contract_months: 48, visit_interval_months: 4,  care_included_default: "Y", base_fault_rate_monthly: 0.015, base_usage_per_week: 14.0}
+  fee_round_to: 100            # 월 요금 100원 단위
+  care_type_weights: {방문관리: 0.37, 자가관리: 0.41, 없음: 0.22}   # [확정 2026-10-08] 보고서 기반(전체 대비)
+  care_type_by_product:        # [제안] 제품별 예외. 정수기는 케어 기본 포함(Y)+점검 4개월이라 방문관리 고정
+    정수기: {방문관리: 1.0, 자가관리: 0.0, 없음: 0.0}
+  mandatory_equals_contract: [정수기]   # 정수기는 의무사용기간 = 계약기간(설계서 §4.2), 나머지는 mandatory_months
+  care_auto_renew_prob: 0.90
+  discount: {eligible_prob: 0.25, applied_prob_normal: 0.80}   # [가정] 할인 대상 25%, 대상자 중 정상군 80% 적용
+  promo: {holder_prob: 0.40, amounts: [5000, 10000, 15000], end_after_start_months: [6, 24]}   # [가정] 종료일이 이미 지났으면 프로모션 없음(NULL) 처리
+  model_pool: {size: [3, 5], discontinued_prob: 0.20, new_model_released_prob: 0.30}   # [가정] 모델 단위로 고정
+  mandatory_months: 36         # 의무사용기간(개월) [가정]
+  start_offset_months: {min: 1, max_from_contract: -1}   # 경과 개월 U(1, 계약개월-1) [확정]
+
+customers:                     # 설계서 §4.2 customer
+  age_group_weights: {"20대": 0.12, "30대": 0.28, "40대": 0.30, "50대": 0.20, "60대이상": 0.10}
+  region_weights: {서울: 18.2, 경기: 26.3, 인천: 5.7, 부산: 6.4, 대구: 4.6, 대전: 2.8, 광주: 2.8, 울산: 2.1, 세종: 0.7, 강원: 3.0, 충북: 3.1, 충남: 4.1, 전북: 3.4, 전남: 3.5, 경북: 5.0, 경남: 6.4, 제주: 1.3}   # 인구 비례(근사, 합은 코드에서 정규화) [가정]
+  thinq_app_installed_prob: 0.85
+  notify_consent_prob: 0.80
+  ad_consent_prob: 0.50        # [가정] 시뮬레이션 민감도는 agent_design.md §4.7
+  weekday_daytime_available_prob: 0.70
+  joined_before_start_days: [0, 730]   # 고객 최초 가입일 = 구독 시작일 - U(0, 730)일
+managers:
+  rating_mean: 3.9
+  rating_std: 0.5
+  active_prob: 0.95
+
+types:
+  normal_share: 0.80           # [가정] 정상(유형 0개) 80%
+  active_count_weights: {1: 0.35, 2: 0.40, 3: 0.25}      # [확정] 활성 구독 안에서, 최대 3개
+  type_weights:                # [확정 10/07] 리뷰 비중 50% + 균등 50%, 합 100%
+    T01: 0.106
+    T02: 0.060
+    T03: 0.062
+    T04: 0.056
+    T05: 0.206
+    T06: 0.123
+    T07: 0.152
+    T08: 0.064
+    T09: 0.092
+    T10: 0.079
+  review_counts: {T01: 29, T02: 5, T03: 6, T04: 3, T05: 81, T06: 38, T07: 53, T08: 7, T09: 22, T10: 15}   # 참고용(표본 편향)
+  strength: {low: 0.4, high: 1.0}      # 유형이 켜졌으면 최소 신호는 있어야 하므로 0.4부터
+  # T03은 강도가 만료 임박도 함수: 0.3 + 0.7 * (1 - days_to_end/90). T01은 프로모션 D-45 이내면 상향. (생성기 3페이지에서 구현)
+
+label:                         # [가정] 라벨(이탈) 생성식. b0·w_scale만 조정해 목표 이탈률에 맞춘다
+  b0: -4.6
+  w_scale: 1.0
+  w_timing: 0.8
+  noise_sigma: 0.5
+  rank_multipliers: [1.0, 0.5, 0.25]   # 기여를 큰 순서로 곱해 더함(포화 방지)
+  timing_window_days: 90
+  type_w:                      # [제안] 유형별 가중치 w
+    T01: 3.5
+    T02: 4.3
+    T03: 4.4
+    T04: 2.2
+    T05: 3.8
+    T06: 3.7
+    T07: 3.5
+    T08: 3.0
+    T09: 4.0
+    T10: 3.8
+  churn_day_range: [1, 30]     # [확정] 이탈일 = 기준일 + 1~30일 균등
+  targets: {normal_rate: 0.01, active_rate: 0.35, overall_rate: 0.08}   # 검증용 목표(허용 오차는 tolerance)
+  tolerance: {normal_rate: 0.004, active_rate: 0.05, overall_rate: 0.015}
+
+signals:                       # 강도 0.4 → 1.0 일 때의 신호 세기 [가정]. 값이 하나면 [강도0.4, 강도1.0]
+  T01: {voc_fee_cnt_90d: [2, 5], unapplied_discount_prob: [0.4, 0.9]}
+  T02: {voc_cancel_cnt_90d: [2, 5], cancel_delay_days: [2, 10]}
+  T03: {renewal_notice_cnt: [1, 4], new_model_released_prob: [0.3, 0.9]}
+  T04: {zero_use_weeks_12w: [3, 10], recent_vs_prior_usage_ratio: [0.7, 0.2]}
+  T05: {care_duration_min: [36, 22], as_within_14d_cnt: [1, 3]}
+  T06: {late_cancel_noshow_cnt_365d: [2, 5], reschedule_voc_cnt: [2, 5], booking_lead_days: [14, 35]}
+  T07: {manager_change_cnt_365d: [1, 3], attitude_voc_cnt: [1, 3], satisfaction_avg: [3.2, 2.0]}
+  T08: {sales_pitch_cnt_180d: [1, 4], repitch_prob: [0.2, 0.6]}
+  T09: {as_cnt_365d_large: [2, 5], same_symptom_cnt: [1, 3], as_cnt_365d_water: [3, 6]}
+  T10: {unresolved_voc_cnt: [1, 3], repair_days: [7, 25], split_receipt_prob: [0.2, 0.7]}
+
+modulation:                    # 페이지 3: 유형 활성 구독의 기본 정보 변조 [가정] (설계서 §6 활성화 규칙 매트릭스)
+  t01: {promo_end_days: [0, 45], unapplied_discount_prob: [0.4, 0.9], promo_amounts: [5000, 10000, 15000]}   # 프로모션 종료 D-45 이내, 미적용 할인 확률(강도 0.4→1.0)
+  t02: {early_start_prob: 0.60, early_start_months: [1, 12]}       # 약정 초반(경과 12개월 이내) 쪽으로 편향
+  t03: {end_days: [0, 90], new_model_prob: [0.3, 0.9], discontinued_pick_prob: 0.6}   # 만료 0~90일, 단종 모델 우선
+  t06: {weekday_unavailable_prob: [0.5, 0.8]}                       # 평일 낮 방문 불가(N) 확률(강도 0.4→1.0). 기본은 30%
+  t07: {low_rating_quantile: 0.30, manager_change_confirmed_prob: 0.15}   # 지역 내 하위 30% 평점 매니저 우선 배정, 교체 확정(S-T07-D 시연용) 15%
+  visit_care_types: [T05, T06, T07, T08]   # [제안] 방문 이벤트가 신호인 유형 → 케어 유형을 방문관리로 올림(자가관리·없음이면 방문 신호를 만들 수 없음)
+
+events:                        # 페이지 4-1: 사용량·결제·안내 이력 [가정]
+  usage_weeks: 26              # 기준일 이전 26주(월요일 시작, 일요일이 기준일 이하인 주만)
+  usage_person_sigma: 0.25     # 구독자별 사용량 개인차(로그정규 σ) — 정상군도 '안정'하되 개인차는 있음
+  usage_minutes_per_run: {의류관리기: 45, 건조기: 60, 냉장고: 30, 세탁기: 70, 에어컨: 120, 정수기: 5}
+  usage_recent_weeks: 12       # T04 신호가 나타나는 최근 구간
+  payment_months: 6            # 기준월 포함 최근 6개월(구독 시작 이후만)
+  payment_due_day: 25
+  late_prob: {normal: 0.03, t01: 0.15}                  # [설계서] 정상군 연체 3%, T01 활성 15%
+  late_days: [1, 10]           # 연체 시 납기 후 납부까지 일수. 납부일이 기준일을 넘으면 미납(paid NULL)
+  early_pay_days: [0, 5]       # 정상 납부는 납기 0~5일 전
+  t01_price_increase: {rate: [0.03, 0.12], months: 3}   # T01: 최근 3개월 청구액 상승(강도 0.4→1.0)
+  notices:
+    renewal_ks: [90, 60, 30, 14, 7]   # 만료 D-k 갱신안내(기본은 D-90 1회, T03는 재계약 안내 접촉 횟수만큼 추가)
+    open_prob: 0.60            # 정상군 열람률
+    t03_renewal_open_prob: 0.95
+    tips: {prob: 0.35, count: [1, 3]}       # 사용팁: 노이즈
+    terms: {prob: 0.05, count: [1, 1]}      # 계약조건안내: 노이즈
+
+visits:                        # 페이지 4-2a: 방문(care_visit) [가정]
+  window_days: 365
+  upcoming_horizon_days: 90    # 이 안에 다음 정기점검 예정일이 있으면 '예정' 행으로 만든다
+  care_status_weights: {완료: 0.92, 지연완료: 0.05, 취소: 0.02, 미이행: 0.01}   # 정상군 정기점검 결과
+  delay_days: [3, 20]          # 지연완료는 예정일 + 3~20일
+  reschedule_lambda: 0.15      # 정상군 일정 변경 횟수(푸아송)
+  duration: {mean: 45, sd: 6}  # 정기점검 소요시간(분)
+  booking_lead_mean: 7         # 예약 대기일(1 + 푸아송)
+  sales_pitch_prob: 0.03       # 정상군 방문 중 영업 권유
+  repitch_prob_normal: 0.10
+  anomaly_prob_normal: 0.02    # 정기점검 중 이상 감지(S-T09-C 트리거)
+  anomaly_prob_t09: [0.15, 0.5]
+  satisfaction: {response_prob: 0.60, mean: 4.2, sd: 0.7, t07_response_prob: 0.90, t07_sd: 0.6}
+  as:
+    repair_lambda: 2           # 정상 수리 소요일 = 1 + 푸아송(2) ≈ 평균 3일
+    expected_days: [1, 14]     # 정상 예상 수리 기간(접수일 + 1~14일)
+    open_prob: {normal: 0.02, T09: 0.15, T10: 0.50}      # 현재 진행 중(예정) A/S 보유 확률
+    split_prob_normal: 0.05
+    parts_delay_normal: 0.03
+    parts_delay_t10: 0.70
+    symptom_codes: 12
+  t02_relocation: {prob: [0.3, 0.7], delay_days: [3, 20], delayed_prob: 0.5}   # 이전설치 요청(강도 비례)
+  t05_short_care_prob: [0.4, 0.95]        # [가정] T05 활성 구독의 최근 케어가 '짧은 케어'(<20분)일 확률 — 신호 강도에 따라 선형 증가
+  t05_post_care_as_days: [1, 10]          # 케어 후 14일 내 A/S가 접수되는 시점
+  t06: {bad_status_weights: {지연완료: 0.45, 취소: 0.30, 미이행: 0.25}, reschedule_mean: [1, 3]}
+  t08_window_days: 180
+
+voc:                           # 페이지 4-2b: 문의(voc_contact) [가정]
+  window_days: 180             # 정상 문의 생성 구간
+  signal_window_days: 90       # 유형 신호가 나타나는 구간(상담 피처 윈도우)
+  channel_weights: {앱: 0.45, 전화: 0.40, 챗봇: 0.15}
+  normal_rate: 0.35            # 정상군 180일 내 문의 건수(푸아송 평균) → 0~1건
+  normal_category_weights: {기타: 0.30, 사용법문의: 0.28, 요금문의: 0.15, 일정변경요청: 0.07, 갱신문의: 0.05, 총비용문의: 0.03, 위약금문의: 0.02, 해지문의: 0.02, 이사문의: 0.02, 재방문요청: 0.02, 케어결과불만: 0.01, 담당자교체요청: 0.01, 태도불만: 0.005, 영업불만: 0.005, 응대불만: 0.005}
+  resolved_prob_normal: 0.90
+  first_unresolved_normal: 0.10
+  first_unresolved_later_resolved_prob: 0.40   # 1차 응대에서 안 풀려도 이후 해결된 비율
+  response_hours: {median: 6, sigma: 0.8, t10_median: 20, none_prob: 0.02}
+  cancel_delay_normal: [0, 2]
+  t01_total_cost_share: 0.30   # T01 문의 중 총비용문의 비중(나머지 요금문의)
+  t02: {penalty_share: 0.5, move_prob: 0.5}   # 위약금:해지 5:5, 이사문의 1건 확률
+  t03_renewal_voc: [1, 3]
+  t05_voc: {revisit: [1, 3], result_complaint: [1, 3]}
+  t07_manager_change_request: [1, 2]
+  t08_sales_voc: [1, 2]
+  t10: {rows: [2, 5],   # 미해결 건수 [1,3]은 signals.T10, 나머지 행 해결 확률 resolved_prob
+         resolved_prob: 0.9, first_unresolved: [0.4, 0.8], category_weights: {응대불만: 0.7, 기타: 0.3}}
+
+normal_noise:                  # [가정] 정상군 약한 노이즈
+  voc_cnt: [0, 1]
+  satisfaction: [3.5, 5.0]
+  usage_stability: 0.15        # 주간 가동 횟수 변동계수
+
+# 설문 응답률·사유 비율·조치 효과 r·숨은 주제는 이 파일이 아니라 9단계(응답 합성기) 설정.

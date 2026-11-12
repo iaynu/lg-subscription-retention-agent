@@ -1,0 +1,280 @@
+{
+ "_note": "테스트 전용 솔루션 카탈로그 [가정]. 실제 카탈로그는 솔루션 확정 후 교체. offer_cost = 회사가 추가 부담하는 금액(문제 대응 A/S·교환·정보·담당자 조치는 0). 규칙 테스트가 카탈로그 값에 의존하므로 실제 카탈로그로 바꾸면 기대값 재계산 필요.",
+ "solutions": [
+  {
+   "solution_id": "S-T01-A",
+   "type_id": "T01",
+   "category": "정보제공",
+   "name": "요금·할인 적용 내역 안내",
+   "detail": "청구 금액 구성과 적용 가능한 할인 내역을 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T01-B",
+   "type_id": "T01",
+   "category": "혜택제안",
+   "name": "요금 할인 혜택",
+   "detail": "조건 충족 시 이용 가능한 요금 할인 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 20000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용과 위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T02-A",
+   "type_id": "T02",
+   "category": "정보제공",
+   "name": "해지·이사 절차 및 위약금 안내",
+   "detail": "해지·이전 설치 절차와 위약금 산정 방식을 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T02-B",
+   "type_id": "T02",
+   "category": "담당자조치",
+   "name": "해지 접수 처리 현황 확인",
+   "detail": "접수된 해지·이전 요청의 처리 현황을 담당자가 확인해 연락",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "담당자 연락 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T03-A",
+   "type_id": "T03",
+   "category": "정보제공",
+   "name": "재계약·신모델 비교 안내",
+   "detail": "재계약 조건과 신모델 차이를 비교해 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T03-B",
+   "type_id": "T03",
+   "category": "혜택제안",
+   "name": "재계약 혜택",
+   "detail": "재계약 시 이용 가능한 혜택 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 30000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용·위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T03-C",
+   "type_id": "T03",
+   "category": "제품조치",
+   "name": "신모델 교체 제안",
+   "detail": "기존 제품을 신모델로 교체하는 방안 접수(구독료 변동 가능)",
+   "offer_cost": 0,
+   "fee_impact": "증가",
+   "message_hint": "늘어나는 금액·총 비용·기존 구독 유지 여부 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T04-A",
+   "type_id": "T04",
+   "category": "정보제공",
+   "name": "사용 방법·기능 안내",
+   "detail": "자주 쓰는 기능과 사용 방법을 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T04-B",
+   "type_id": "T04",
+   "category": "혜택제안",
+   "name": "이용 재개 쿠폰",
+   "detail": "이용 재개 시 사용할 수 있는 쿠폰 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 10000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용·위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T05-A",
+   "type_id": "T05",
+   "category": "담당자조치",
+   "name": "케어 결과 재확인 접수",
+   "detail": "케어 결과를 담당자가 다시 확인하도록 접수",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "담당자 연락 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T05-B",
+   "type_id": "T05",
+   "category": "혜택제안",
+   "name": "케어 불편 보상 쿠폰",
+   "detail": "케어 불편에 대한 보상 쿠폰 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 15000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용·위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T05-X",
+   "type_id": "T05",
+   "category": "담당자조치",
+   "name": "(비활성) 구 케어 점검 절차",
+   "detail": "비활성 테스트용",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "",
+   "active_yn": "N"
+  },
+  {
+   "solution_id": "S-T06-A",
+   "type_id": "T06",
+   "category": "정보제공",
+   "name": "방문 일정 변경 방법 안내",
+   "detail": "방문 일정을 바꾸는 방법을 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T06-B",
+   "type_id": "T06",
+   "category": "담당자조치",
+   "name": "방문 시간대 재조율 연락",
+   "detail": "가능한 방문 시간대를 담당자가 다시 조율",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "담당자 연락 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T07-A",
+   "type_id": "T07",
+   "category": "담당자조치",
+   "name": "담당 매니저 변경 검토",
+   "detail": "담당 매니저 변경 여부를 담당자가 검토",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "담당자 연락 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T07-B",
+   "type_id": "T07",
+   "category": "혜택제안",
+   "name": "서비스 불편 사과 쿠폰",
+   "detail": "서비스 불편에 대한 쿠폰 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 10000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용·위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T08-A",
+   "type_id": "T08",
+   "category": "담당자조치",
+   "name": "영업 권유 불편 접수",
+   "detail": "방문 중 영업 권유에 대한 불편을 접수해 담당자가 확인",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "담당자 연락 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T08-B",
+   "type_id": "T08",
+   "category": "정보제공",
+   "name": "방문 서비스 범위 안내",
+   "detail": "방문 시 제공되는 서비스 범위를 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T09-A",
+   "type_id": "T09",
+   "category": "제품조치",
+   "name": "무상 점검·수리",
+   "detail": "제품 상태를 점검하고 필요 시 수리를 접수(고객 부담 없음)",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "점검 접수 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T09-B",
+   "type_id": "T09",
+   "category": "제품조치",
+   "name": "제품 교환 검토",
+   "detail": "반복 증상 시 제품 교환 가능 여부 검토 접수(고객 부담 없음)",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "교환 검토 접수 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T09-C",
+   "type_id": "T09",
+   "category": "혜택제안",
+   "name": "고장 불편 보상 쿠폰",
+   "detail": "반복 고장 불편에 대한 쿠폰 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 20000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용·위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T10-A",
+   "type_id": "T10",
+   "category": "담당자조치",
+   "name": "미해결 문의 우선 처리",
+   "detail": "미해결 문의를 담당자가 우선 확인해 연락",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "담당자 연락 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T10-B",
+   "type_id": "T10",
+   "category": "정보제공",
+   "name": "A/S 진행 현황 안내",
+   "detail": "접수된 A/S의 진행 현황을 안내",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "확인 방법(앱·상담) 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-T10-C",
+   "type_id": "T10",
+   "category": "정보제공",
+   "name": "A/S 지연 보상 안내",
+   "detail": "A/S 지연에 대한 보상 쿠폰 안내(구체 조건은 신청 시 상담원 안내)",
+   "offer_cost": 10000,
+   "fee_impact": "없음",
+   "message_hint": "총 비용·위약금 조건과 함께 안내",
+   "active_yn": "Y"
+  },
+  {
+   "solution_id": "S-NT-A",
+   "type_id": "유형없음",
+   "category": "의견수집",
+   "name": "만족도 조사",
+   "detail": "서비스 이용 경험 설문",
+   "offer_cost": 0,
+   "fee_impact": "없음",
+   "message_hint": "열린 질문",
+   "active_yn": "Y"
+  }
+ ]
+}

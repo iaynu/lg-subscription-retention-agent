@@ -1,0 +1,182 @@
+%%{init: {"theme":"neutral","themeVariables":{"fontSize":"20px"},"er":{"fontSize":18,"minEntityWidth":170,"entityPadding":18,"layoutDirection":"TB"}}}%%
+erDiagram
+    customer ||--o{ subscription : "보유"
+    product_profile ||--o{ subscription : "제품군 기본값"
+    care_manager ||--o{ subscription : "담당"
+    care_manager ||--o{ care_visit : "방문"
+    subscription ||--o{ usage_thinq : "주간 사용"
+    subscription ||--o{ care_visit : "방문/AS"
+    subscription ||--o{ voc_contact : "문의"
+    subscription ||--o{ payment : "청구"
+    subscription ||--o{ notice_log : "안내"
+    subscription ||--o{ churn_prediction : "점수"
+    churn_prediction ||--|{ churn_prediction_type : "유형 1~3개"
+    churn_type ||--o{ churn_prediction_type : "분류"
+    churn_type ||--o{ solution_catalog : "솔루션"
+    subscription ||--o{ action_log : "조치 이력"
+    solution_catalog ||--o{ action_log : "선택된 솔루션"
+    subscription ||--|| synth_churn_label : "정답"
+    subscription ||--o{ synth_truth_type : "진짜 유형"
+    subscription ||--o{ agent_result : "Agent 실행"
+    agent_result ||--o{ action_log : "조치가 나온 요청"
+    subscription ||--o{ survey_send : "설문 발송"
+    agent_result |o--o{ survey_send : "조치 후 설문"
+    survey_send ||--o| survey_response : "응답"
+    survey_response ||--o{ survey_answer : "문항별 답"
+    churn_type |o--o{ ai_proposal : "관련 유형"
+    subscription ||--o{ synth_truth_topic : "숨은 주제"
+    churn_prediction |o--o{ agent_result : "근거 예측"
+    churn_prediction |o--o{ action_log : "근거 예측"
+    churn_type ||--o{ action_log : "조치 유형"
+    churn_type ||--o{ synth_truth_type : "정답 유형"
+
+    customer {
+        varchar customer_id PK
+        varchar age_group
+        varchar region_sido
+        date joined_at
+        char ad_consent_yn
+    }
+    subscription {
+        varchar subscription_id PK
+        varchar customer_id FK
+        varchar product_category FK
+        date start_date
+        date end_date
+        numeric monthly_fee
+        varchar care_type
+        varchar status
+    }
+    product_profile {
+        varchar product_category PK
+        smallint visit_interval_months
+        numeric subscriber_weight
+    }
+    care_manager {
+        varchar manager_id PK
+        varchar region_sido
+    }
+    usage_thinq {
+        bigint usage_id PK
+        varchar subscription_id FK
+        date week_start_date
+        smallint run_count
+        smallint app_login_days
+    }
+    care_visit {
+        bigint visit_id PK
+        varchar subscription_id FK
+        varchar visit_type
+        varchar visit_status
+        smallint satisfaction_score
+    }
+    voc_contact {
+        bigint voc_id PK
+        varchar subscription_id FK
+        date contact_date
+        varchar category
+        char resolved_yn
+    }
+    payment {
+        bigint payment_id PK
+        varchar subscription_id FK
+        date billing_month
+        varchar payment_status
+    }
+    notice_log {
+        bigint notice_id PK
+        varchar subscription_id FK
+        varchar notice_type
+        timestamp opened_at
+    }
+    churn_prediction {
+        bigint prediction_id PK
+        varchar subscription_id FK
+        numeric churn_probability
+        varchar risk_level
+        numeric risk_rank_pct
+    }
+    churn_prediction_type {
+        bigint prediction_id PK
+        smallint type_rank PK
+        varchar type_id FK
+        numeric contribution_share
+    }
+    churn_type {
+        varchar type_id PK
+        varchar type_name
+    }
+    solution_catalog {
+        varchar solution_id PK
+        varchar type_id FK
+        varchar solution_category
+        varchar channel
+        char ad_yn
+        char agent_selectable_yn
+        numeric offer_cost
+        varchar fee_impact
+        smallint priority
+        text eligibility
+        varchar customer_title
+        varchar message_items
+    }
+    action_log {
+        bigint action_id PK
+        varchar action_batch_id FK
+        varchar subscription_id FK
+        bigint prediction_id FK
+        varchar type_id FK
+        varchar solution_id FK
+        varchar channel
+        varchar message_source
+        varchar action_status
+        varchar decision_note
+        timestamp created_at
+    }
+    synth_churn_label {
+        varchar subscription_id PK
+        smallint churn_30d
+    }
+    synth_truth_type {
+        varchar subscription_id PK, FK
+        varchar type_id PK, FK
+        numeric activation_strength
+    }
+    agent_result {
+        varchar request_id PK
+        varchar subscription_id FK
+        bigint prediction_id FK
+        varchar mode
+        varchar outcome
+        varchar prompt_version
+        jsonb result_json
+    }
+    survey_send {
+        bigint survey_id PK
+        varchar subscription_id FK
+        varchar action_batch_id FK
+        varchar survey_type
+        char responded_yn
+    }
+    survey_response {
+        bigint response_id PK
+        bigint survey_id FK
+        char completed_yn
+    }
+    survey_answer {
+        bigint answer_id PK
+        bigint response_id FK
+        varchar question_id
+        varchar answer_code
+    }
+    ai_proposal {
+        bigint proposal_id PK
+        varchar proposal_kind
+        varchar related_type_id FK
+        varchar status
+    }
+    synth_truth_topic {
+        varchar subscription_id PK
+        varchar topic_id PK
+        numeric strength
+    }
