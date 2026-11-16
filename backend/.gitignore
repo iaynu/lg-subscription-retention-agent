@@ -2,3 +2,6 @@
 churn.db
 __pycache__/
 *.pyc
+
+# AI summary cache (regenerated at runtime)
+.ai_summary_cache.json
